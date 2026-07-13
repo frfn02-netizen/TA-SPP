@@ -1,6 +1,6 @@
-const success=(res,data,message="Success")=>{
+const success=(res,data,message="Success", status=200)=>{
 
-    return res.status(200).json({
+    return res.status(status).json({
 
         success:true,
 

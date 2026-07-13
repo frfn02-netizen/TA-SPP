@@ -1,10 +1,8 @@
-const rolemiddleware = (...roles) => {
-    return (req, res, next => {
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ 
-                message: 'Access denied' })
-        }
-        next()
-    })
-}
-module.exports = rolemiddleware
+const roleMiddleware = (...roles) => (req, res, next) => {
+  if (!req.user || !roles.includes(req.user.role)) {
+    return res.status(403).json({ success: false, message: "Akses ditolak" });
+  }
+  next();
+};
+
+module.exports = roleMiddleware;
