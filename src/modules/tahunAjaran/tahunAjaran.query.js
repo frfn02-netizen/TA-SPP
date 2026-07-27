@@ -10,9 +10,18 @@ const getAll = async () => {
     return rows;
 };
 
-const create = async (data) => {
+const findById = async (id, conn = db) => {
+    const [rows] = await conn.execute(
+        "SELECT id FROM tahun_ajaran WHERE id = ? LIMIT 1",
+        [id]
+    );
 
-    const [result] = await db.execute(
+    return rows[0];
+};
+
+const create = async (data, conn = db) => {
+
+    const [result] = await conn.execute(
         `
         INSERT INTO tahun_ajaran
         (
@@ -31,18 +40,18 @@ const create = async (data) => {
 
 };
 
-const deactivateAll = async () => {
+const deactivateAll = async (conn = db) => {
 
-    await db.execute(`
+    await conn.execute(`
         UPDATE tahun_ajaran
         SET aktif = FALSE
     `);
 
 };
 
-const activate = async (id) => {
+const activate = async (id, conn = db) => {
 
-    await db.execute(
+    const [result] = await conn.execute(
         `
         UPDATE tahun_ajaran
         SET aktif = TRUE
@@ -51,10 +60,13 @@ const activate = async (id) => {
         [id]
     );
 
+    return result.affectedRows;
+
 };
 
 module.exports = {
     getAll,
+    findById,
     create,
     deactivateAll,
     activate

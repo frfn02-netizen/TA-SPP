@@ -1,5 +1,9 @@
 const jwt=require("jsonwebtoken");
 
+if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET wajib diatur");
+}
+
 const generateToken=(payload)=>{
 
     return jwt.sign(
@@ -15,7 +19,6 @@ const generateToken=(payload)=>{
     );
 
 };
-
-module.exports={
+module.exports = {
     generateToken
 }

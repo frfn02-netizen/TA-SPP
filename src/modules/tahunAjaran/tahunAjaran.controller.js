@@ -1,7 +1,7 @@
 const service = require("./tahunAjaran.service");
 const response = require("../../utils/response");
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
 
     try {
 
@@ -11,13 +11,13 @@ const getAll = async (req, res) => {
 
     } catch (err) {
 
-        response.error(res, err.message);
+        next(err);
 
     }
 
 };
 
-const create = async (req, res) => {
+const create = async (req, res, next) => {
 
     try {
 
@@ -31,13 +31,13 @@ const create = async (req, res) => {
 
     } catch (err) {
 
-        response.error(res, err.message);
+        next(err);
 
     }
 
 };
 
-const activate = async (req, res) => {
+const activate = async (req, res, next) => {
 
     try {
 
@@ -51,7 +51,7 @@ const activate = async (req, res) => {
 
     } catch (err) {
 
-        response.error(res, err.message);
+        next(err);
 
     }
 

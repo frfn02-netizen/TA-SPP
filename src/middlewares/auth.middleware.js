@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
+const db = require("../config/database");
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
+    let decoded;
+
     try {
 
         const authHeader = req.headers.authorization;
@@ -17,14 +20,10 @@ const authMiddleware = (req, res, next) => {
             return res.status(401).json({ success: false, message: "Format token tidak valid" });
         }
 
-        const decoded = jwt.verify(
+        decoded = jwt.verify(
             token,
             process.env.JWT_SECRET
         );
-
-        req.user = decoded;
-
-        next();
 
     } catch (err) {
 
@@ -36,6 +35,26 @@ const authMiddleware = (req, res, next) => {
 
         });
 
+    }
+
+    try {
+        const [rows] = await db.execute(
+            "SELECT id, username, role, is_active FROM users WHERE id = ? LIMIT 1",
+            [decoded.id]
+        );
+        const user = rows[0];
+
+        if (!user || !user.is_active) {
+            return res.status(401).json({
+                success: false,
+                message: "Akun tidak aktif"
+            });
+        }
+
+        req.user = { id: user.id, username: user.username, role: user.role };
+        next();
+    } catch (err) {
+        next(err);
     }
 };
 

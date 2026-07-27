@@ -1,26 +1,62 @@
 const db = require("../../config/database");
 
 const getAll = async () => {
-  const [rows] = await db.execute(`
-    SELECT s.id, s.nisn, s.nama, s.no_telp_ortu, u.username,
-           k.id AS kelas_id, k.nama_kelas, k.tingkat, k.jurusan
-    FROM siswa s
-    JOIN users u ON u.id = s.user_id
-    JOIN kelas k ON k.id = s.kelas_id
-    ORDER BY s.nama ASC
-  `);
-  return rows;
+
+    const [rows] = await db.execute(`
+        SELECT
+
+            s.id,
+
+            s.nisn,
+
+            s.nama,
+
+            k.nama_kelas,
+
+            u.username,
+
+            s.no_telp_ortu
+
+        FROM siswa s
+
+        JOIN users u
+            ON s.user_id = u.id
+
+        JOIN kelas k
+            ON s.kelas_id = k.id
+
+        ORDER BY s.nama ASC
+    `);
+
+    return rows;
 };
 
 const getById = async (id) => {
-  const [rows] = await db.execute(`
-    SELECT s.*, u.username, k.nama_kelas, k.tingkat, k.jurusan
-    FROM siswa s
-    JOIN users u ON u.id = s.user_id
-    JOIN kelas k ON k.id = s.kelas_id
-    WHERE s.id = ?
-  `, [id]);
-  return rows[0];
+
+    const [rows] = await db.execute(
+        `
+        SELECT
+
+            s.*,
+
+            u.username,
+
+            k.nama_kelas
+
+        FROM siswa s
+
+        JOIN users u
+            ON s.user_id = u.id
+
+        JOIN kelas k
+            ON s.kelas_id = k.id
+
+        WHERE s.id = ?
+        `,
+        [id]
+    );
+
+    return rows[0];
 };
 
 const findByNisn = async (nisn) => {
@@ -33,12 +69,42 @@ const findKelasById = async (id) => {
   return rows[0];
 };
 
-const create = async (conn, { userId, nisn, nama, kelasId, noTelpOrtu }) => {
-  const [result] = await conn.execute(
-    "INSERT INTO siswa (user_id, kelas_id, nisn, nama, no_telp_ortu) VALUES (?, ?, ?, ?, ?)",
-    [userId, kelasId, nisn, nama, noTelpOrtu || null],
-  );
-  return result.insertId;
-};
+const create = async (conn, data) => {
 
+    const [result] = await conn.execute(
+        `
+        INSERT INTO siswa(
+
+            user_id,
+
+            kelas_id,
+
+            nisn,
+
+            nama,
+
+            no_telp_ortu
+
+        )
+
+        VALUES(?,?,?,?,?)
+        `,
+        [
+
+            data.userId,
+
+            data.kelasId,
+
+            data.nisn,
+
+            data.nama,
+
+            data.noTelpOrtu || null
+
+        ]
+    );
+
+    return result.insertId;
+
+};
 module.exports = { getAll, getById, findByNisn, findKelasById, create };

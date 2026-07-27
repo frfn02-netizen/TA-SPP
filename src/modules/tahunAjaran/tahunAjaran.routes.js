@@ -4,6 +4,8 @@ const controller = require("./tahunAjaran.controller");
 
 const authMiddleware = require("../../middlewares/auth.middleware");
 const roleMiddleware = require("../../middlewares/role.middleware");
+const validate = require("../../middlewares/validate.middleware");
+const { createSchema } = require("./tahunAjaran.validation");
 
 router.get(
     "/",
@@ -16,6 +18,7 @@ router.post(
     "/",
     authMiddleware,
     roleMiddleware("ADMIN"),
+    validate(createSchema),
     controller.create
 );
 

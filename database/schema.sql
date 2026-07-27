@@ -73,7 +73,9 @@ CREATE TABLE kelas (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (tahun_ajaran_id)
-        REFERENCES tahun_ajaran(id)
+        REFERENCES tahun_ajaran(id),
+
+    UNIQUE (tahun_ajaran_id, nama_kelas)
 
 );
 

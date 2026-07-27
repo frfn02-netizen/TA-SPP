@@ -40,5 +40,30 @@ const createTagihan = async ({ siswaId, tahunAjaranId, bulan, tahun, nominal, ja
   `, [siswaId, tahunAjaranId, bulan, tahun, nominal, jatuhTempo, keterangan || null]);
   return result.insertId;
 };
+const findById = async (id) => {
+  const [rows] = await db.execute(
+    `
+    SELECT
+      t.*,
+      s.nama,
+      s.email,
+      s.nisn
+    FROM tagihan t
+    JOIN siswa s
+      ON s.id = t.siswa_id
+    WHERE t.id = ?
+    LIMIT 1
+    `,
+    [id]
+  );
 
-module.exports = { getAll, getByUserId, siswaExists, tahunAjaranExists, createTagihan };
+  return rows[0];
+};
+
+module.exports = { 
+  getAll,
+  getByUserId,
+  siswaExists,
+  tahunAjaranExists,
+  findById,
+  createTagihan };

@@ -1,0 +1,18 @@
+const crypto = require ("crypto")
+const generateOrderId  = () =>{
+    const now = new Date();
+    const year = new Year();
+    const month = String(now.getMonth() + 1)
+    .padStart(2, "0")
+
+    const day = String(now.getDay())
+    .padStart(2, "0")
+
+    const random = crypto
+    .randomBytes(3)
+    .toString("hex")
+    .toUpperCase()
+
+    return `SPP-${year}${month}${day}-${random}`
+}
+module.exports = generateOrderId
