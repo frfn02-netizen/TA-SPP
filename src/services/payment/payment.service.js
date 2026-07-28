@@ -8,26 +8,69 @@ const createPayment = async ({
   const parameter = {
     transaction_details: {
       order_id: orderId,
-      gross_amount: grossAmount,
+      gross_amount: Number(grossAmount),
     },
 
     customer_details: {
-      first_name: customer.nama,
-      email: customer.email,
+      first_name: customer?.nama ?? "Siswa",
     },
 
     enabled_payments: ["qris"],
   };
 
-  const transaction =
-    await snap.createTransaction(parameter);
+  try {
+    const transaction =
+      await snap.createTransaction(parameter);
 
-  return {
-    snapToken: transaction.token,
-    paymentUrl: transaction.redirect_url,
-  };
+    if (
+      !transaction ||
+      !transaction.token ||
+      !transaction.redirect_url
+    ) {
+      throw new Error(
+        "Response Midtrans tidak valid."
+      );
+    }
+
+    return {
+      snapToken: transaction.token,
+      paymentUrl: transaction.redirect_url,
+    };
+  } catch (error) {
+    console.error(
+      "Midtrans createTransaction Error:"
+    );
+    console.error(error);
+
+    throw new Error(
+      "Gagal membuat transaksi pembayaran."
+    );
+  }
+};
+
+const handleNotification = async (
+  notification
+) => {
+  try {
+    const status =
+      await snap.transaction.notification(
+        notification
+      );
+
+    return status;
+  } catch (error) {
+    console.error(
+      "Midtrans Notification Error:"
+    );
+    console.error(error);
+
+    throw new Error(
+      "Gagal memproses notifikasi Midtrans."
+    );
+  }
 };
 
 module.exports = {
   createPayment,
+  handleNotification,
 };

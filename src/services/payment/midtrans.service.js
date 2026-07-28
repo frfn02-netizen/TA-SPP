@@ -1,11 +1,12 @@
-const midtransclient = require ("midtrans-client")
+const midtransClient = require("midtrans-client");
 
-const snap = new midtransclient.Snap({
-    isProduction:
-    process.env.MIDTRANS_IS_PRODUCTION === "true",
+console.log("SERVER KEY:", process.env.MIDTRANS_SERVER_KEY);
+console.log("CLIENT KEY:", process.env.MIDTRANS_CLIENT_KEY);
 
-    serverKey: process.env.MIDTRANS_SERVER_PRODUCTION,
-    
+const snap = new midtransClient.Snap({
+    isProduction: false,
+    serverKey: process.env.MIDTRANS_SERVER_KEY,
     clientKey: process.env.MIDTRANS_CLIENT_KEY,
-})
+});
+
 module.exports = snap;

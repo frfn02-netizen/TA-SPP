@@ -10,6 +10,24 @@ const getAll = async () => {
   `);
   return rows;
 };
+const updateStatus = async (
+    executor,
+    id,
+    status
+) => {
+
+    await executor.execute(
+        `
+        UPDATE tagihan
+        SET status = ?
+        WHERE id = ?
+        `,
+        [
+            status,
+            id
+        ]
+    );
+};
 
 const getByUserId = async (userId) => {
   const [rows] = await db.execute(`
@@ -43,16 +61,18 @@ const createTagihan = async ({ siswaId, tahunAjaranId, bulan, tahun, nominal, ja
 const findById = async (id) => {
   const [rows] = await db.execute(
     `
-    SELECT
-      t.*,
-      s.nama,
-      s.email,
-      s.nisn
-    FROM tagihan t
-    JOIN siswa s
-      ON s.id = t.siswa_id
-    WHERE t.id = ?
-    LIMIT 1
+  SELECT
+    t.*,
+    s.nama,
+    s.nisn,
+    u.username
+FROM tagihan t
+JOIN siswa s
+    ON s.id = t.siswa_id
+JOIN users u
+    ON u.id = s.user_id
+WHERE t.id = ?
+LIMIT 1;
     `,
     [id]
   );

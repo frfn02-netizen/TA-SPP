@@ -11,5 +11,33 @@ const create = async (data) => {
   const id = await tagihanQuery.createTagihan(data);
   return { id, ...data, status: "BELUM_BAYAR" };
 };
+const db = require("../../config/database");
+
+const handleWebhook = async (payload) => {
+
+    const connection =
+        await db.getConnection();
+
+    try {
+
+        await connection.beginTransaction();
+
+        // semua proses di sini
+
+        await connection.commit();
+
+    } catch (error) {
+
+        await connection.rollback();
+
+        throw error;
+
+    } finally {
+
+        connection.release();
+
+    }
+
+};
 
 module.exports = { getAll, create };

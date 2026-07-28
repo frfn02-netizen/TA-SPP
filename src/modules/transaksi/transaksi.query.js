@@ -1,24 +1,36 @@
 const db = require("../../config/database");
 
-const create = async ({
-  tagihanId,
-  orderId,
-  grossAmount,
-}) => {
-  const [result] = await db.execute(
+const create = async (
+  executor,
+  {
+    tagihanId,
+    orderId,
+    grossAmount,
+    snapToken,
+    paymentUrl,
+    transactionStatus,
+  }
+) => {
+  const [result] = await executor.execute(
     `
     INSERT INTO transaksi
     (
       tagihan_id,
       order_id,
-      gross_amount
+      gross_amount,
+      snap_token,
+      payment_url,
+      transaction_status
     )
-    VALUES (?, ?, ?)
-  `,
+    VALUES (?, ?, ?, ?, ?, ?)
+    `,
     [
       tagihanId,
       orderId,
       grossAmount,
+      snapToken,
+      paymentUrl,
+      transactionStatus,
     ]
   );
 
@@ -50,7 +62,7 @@ const findById = async (id) => {
     FROM transaksi
     WHERE id = ?
     LIMIT 1
-  `,
+    `,
     [id]
   );
 
@@ -64,7 +76,7 @@ const findByTagihanId = async (tagihanId) => {
     FROM transaksi
     WHERE tagihan_id = ?
     LIMIT 1
-  `,
+    `,
     [tagihanId]
   );
 
@@ -78,18 +90,22 @@ const findByOrderId = async (orderId) => {
     FROM transaksi
     WHERE order_id = ?
     LIMIT 1
-  `,
+    `,
     [orderId]
   );
 
   return rows[0];
 };
-const updatePayment = async ({
-  id,
-  snapToken,
-  paymentUrl,
-}) => {
-  await db.execute(
+
+const updatePayment = async (
+  executor,
+  {
+    id,
+    snapToken,
+    paymentUrl,
+  }
+) => {
+  await executor.execute(
     `
     UPDATE transaksi
     SET
@@ -105,6 +121,42 @@ const updatePayment = async ({
   );
 };
 
+const updateStatus = async (
+  executor,
+  {
+    orderId,
+    transactionStatus,
+    paymentType,
+    transactionTime,
+    settlementTime,
+    paidAt,
+    midtransResponse,
+  }
+) => {
+  await executor.execute(
+    `
+    UPDATE transaksi
+    SET
+      transaction_status = ?,
+      payment_type = ?,
+      transaction_time = ?,
+      settlement_time = ?,
+      paid_at = ?,
+      midtrans_response = ?
+    WHERE order_id = ?
+    `,
+    [
+      transactionStatus,
+      paymentType,
+      transactionTime,
+      settlementTime,
+      paidAt,
+      JSON.stringify(midtransResponse),
+      orderId,
+    ]
+  );
+};
+
 module.exports = {
   create,
   findAll,
@@ -112,4 +164,5 @@ module.exports = {
   findByTagihanId,
   findByOrderId,
   updatePayment,
+  updateStatus,
 };

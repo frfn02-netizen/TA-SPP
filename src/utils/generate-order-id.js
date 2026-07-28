@@ -1,18 +1,15 @@
-const crypto = require ("crypto")
-const generateOrderId  = () =>{
-    const now = new Date();
-    const year = new Year();
-    const month = String(now.getMonth() + 1)
-    .padStart(2, "0")
+const crypto = require("crypto");
 
-    const day = String(now.getDay())
-    .padStart(2, "0")
+const generateOrderId = () => {
+  const now = new Date();
 
-    const random = crypto
-    .randomBytes(3)
-    .toString("hex")
-    .toUpperCase()
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
 
-    return `SPP-${year}${month}${day}-${random}`
-}
-module.exports = generateOrderId
+  const random = crypto.randomBytes(3).toString("hex").toUpperCase();
+
+  return `SPP-${year}${month}${day}-${random}`;
+};
+
+module.exports = generateOrderId;
