@@ -1,12 +1,18 @@
 const midtransClient = require("midtrans-client");
 
-console.log("SERVER KEY:", process.env.MIDTRANS_SERVER_KEY);
-console.log("CLIENT KEY:", process.env.MIDTRANS_CLIENT_KEY);
+const serverKey = process.env.MIDTRANS_SERVER_KEY;
+const clientKey = process.env.MIDTRANS_CLIENT_KEY;
+
+if (!serverKey) {
+  throw new Error(
+    "MIDTRANS_SERVER_KEY belum diisi."
+  );
+}
 
 const snap = new midtransClient.Snap({
-    isProduction: false,
-    serverKey: process.env.MIDTRANS_SERVER_KEY,
-    clientKey: process.env.MIDTRANS_CLIENT_KEY,
+  isProduction: false,
+  serverKey,
+  clientKey,
 });
 
 module.exports = snap;

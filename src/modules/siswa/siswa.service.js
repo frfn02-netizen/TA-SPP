@@ -1,7 +1,8 @@
 const db = require("../../config/database");
 const { hashPassword } = require("../../utils/hash");
-
+const tagihanQuery = require("../tagihan/tagihan.query")
 const siswaQuery = require("./siswa.query");
+const transaksiQuery = require ("../transaksi/transaksi.query")
 const authQuery = require("../auth/auth.query");
 const kelasQuery = require("../kelas/kelas.query");
 
@@ -12,7 +13,6 @@ const getAll = async () => {
 };
 
 const getById = async (id) => {
-
     const siswa = await siswaQuery.getById(id);
 
     if (!siswa) {
@@ -32,15 +32,10 @@ const create = async (data) => {
         throw new AppError("Username sudah digunakan", 409);
     }
 
-    const kelas = await kelasQuery.getById(
-        data.kelasId
-    );
+    const kelas = await kelasQuery.getById(data.kelasId);
 
     if (!kelas) {
-        throw new AppError(
-            "Kelas tidak ditemukan",
-            404
-        );
+        throw new AppError("Kelas tidak ditemukan", 404);
     }
 
     const conn = await db.getConnection();
@@ -68,16 +63,110 @@ const create = async (data) => {
 
         await conn.commit();
 
-        return {
-            id: siswaId,
-            username: data.nisn,
-            kelasId: data.kelasId,
-        };
+        return await siswaQuery.getById(siswaId);
 
     } catch (err) {
 
         await conn.rollback();
+        throw err;
 
+    } finally {
+
+        conn.release();
+
+    }
+};
+
+const update = async (id, data) => {
+
+    const siswa = await siswaQuery.getById(id);
+
+    if (!siswa) {
+        throw new AppError("Siswa tidak ditemukan", 404);
+    }
+
+    const kelas = await kelasQuery.getById(data.kelasId);
+
+    if (!kelas) {
+        throw new AppError("Kelas tidak ditemukan", 404);
+    }
+
+    const siswaExist = await siswaQuery.findByNisn(data.nisn);
+
+    if (siswaExist && siswaExist.id !== Number(id)) {
+        throw new AppError("NISN sudah terdaftar", 409);
+    }
+
+    const conn = await db.getConnection();
+
+    try {
+
+        await conn.beginTransaction();
+
+        // Update username jika NISN berubah
+        if (siswa.nisn !== data.nisn) {
+            await conn.execute(
+                `
+                UPDATE users
+                SET username = ?
+                WHERE id = ?
+                `,
+                [
+                    data.nisn,
+                    siswa.user_id
+                ]
+            );
+        }
+
+        await siswaQuery.update(
+            conn,
+            id,
+            data
+        );
+
+        await conn.commit();
+
+        return await siswaQuery.getById(id);
+
+    } catch (err) {
+
+        await conn.rollback();
+        throw err;
+
+    } finally {
+
+        conn.release();
+
+    }
+};
+
+const remove = async (id) => {
+    const siswa = await siswaQuery.getById(id);
+
+    if (!siswa) {
+        throw new AppError("Siswa tidak ditemukan", 404);
+    }
+
+    const conn = await db.getConnection();
+
+    try {
+        await conn.beginTransaction();
+
+        await siswaQuery.remove(conn, id);
+
+        await conn.execute(
+            `
+            DELETE FROM users
+            WHERE id = ?
+            `,
+            [siswa.user_id]
+        );
+
+        await conn.commit();
+
+    } catch (err) {
+
+        await conn.rollback();
         throw err;
 
     } finally {
@@ -91,4 +180,6 @@ module.exports = {
     getAll,
     getById,
     create,
+    update,
+    remove,
 };

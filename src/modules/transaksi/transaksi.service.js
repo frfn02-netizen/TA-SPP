@@ -4,8 +4,7 @@ const transaksiQuery = require("./transaksi.query");
 const tagihanQuery = require("../tagihan/tagihan.query");
 
 const paymentService = require("../../services/payment/payment.service");
-const mapStatus = require("../../helpers/payment-status.helper");
-
+const mapStatus = require("../../services/payment/payment-status.helper");
 const generateOrderId = require("../../utils/generate-order-id");
 const AppError = require("../../utils/app-error");
 

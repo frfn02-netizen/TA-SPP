@@ -1,20 +1,17 @@
 const db = require("../../config/database");
 
 const getAll = async () => {
-
     const [rows] = await db.execute(
         `
         SELECT
-            k.id,
-            k.nama_kelas,
-            k.tingkat,
-            k.jurusan,
-            k.wali_kelas,
-            t.nama AS tahun_ajaran
-        FROM kelas k
-        JOIN tahun_ajaran t
-            ON k.tahun_ajaran_id = t.id
-        ORDER BY k.nama_kelas ASC
+            id,
+            tingkat,
+            jurusan,
+            rombel,
+            created_at,
+            updated_at
+        FROM kelas
+        ORDER BY tingkat, jurusan, rombel
         `
     );
 
@@ -22,16 +19,17 @@ const getAll = async () => {
 };
 
 const getById = async (id) => {
-
     const [rows] = await db.execute(
         `
         SELECT
-            k.*,
-            t.nama AS tahun_ajaran
-        FROM kelas k
-        JOIN tahun_ajaran t
-            ON k.tahun_ajaran_id = t.id
-        WHERE k.id = ?
+            id,
+            tingkat,
+            jurusan,
+            rombel,
+            created_at,
+            updated_at
+        FROM kelas
+        WHERE id = ?
         `,
         [id]
     );
@@ -39,43 +37,37 @@ const getById = async (id) => {
     return rows[0];
 };
 
-const findByNamaKelas = async (namaKelas, tahunAjaranId) => {
-
+const findByKelas = async (tingkat, jurusan, rombel) => {
     const [rows] = await db.execute(
         `
         SELECT *
         FROM kelas
-        WHERE nama_kelas = ?
-        AND tahun_ajaran_id = ?
+        WHERE tingkat = ?
+          AND jurusan = ?
+          AND rombel = ?
         LIMIT 1
         `,
-        [namaKelas, tahunAjaranId]
+        [tingkat, jurusan, rombel]
     );
 
     return rows[0];
 };
 
 const create = async (data) => {
-
     const [result] = await db.execute(
         `
         INSERT INTO kelas
         (
-            tahun_ajaran_id,
-            nama_kelas,
             tingkat,
             jurusan,
-            wali_kelas
+            rombel
         )
-        VALUES
-        (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?)
         `,
         [
-            data.tahunAjaranId,
-            data.namaKelas,
             data.tingkat,
             data.jurusan,
-            data.waliKelas
+            data.rombel
         ]
     );
 
@@ -83,31 +75,25 @@ const create = async (data) => {
 };
 
 const update = async (id, data) => {
-
     await db.execute(
         `
         UPDATE kelas
         SET
-            tahun_ajaran_id = ?,
-            nama_kelas = ?,
             tingkat = ?,
             jurusan = ?,
-            wali_kelas = ?
+            rombel = ?
         WHERE id = ?
         `,
         [
-            data.tahunAjaranId,
-            data.namaKelas,
             data.tingkat,
             data.jurusan,
-            data.waliKelas,
+            data.rombel,
             id
         ]
     );
 };
 
 const remove = async (id) => {
-
     await db.execute(
         `
         DELETE FROM kelas
@@ -118,7 +104,6 @@ const remove = async (id) => {
 };
 
 const countSiswa = async (kelasId) => {
-
     const [rows] = await db.execute(
         `
         SELECT COUNT(*) AS total
@@ -134,7 +119,7 @@ const countSiswa = async (kelasId) => {
 module.exports = {
     getAll,
     getById,
-    findByNamaKelas,
+    findByKelas,
     create,
     update,
     remove,

@@ -1,45 +1,22 @@
 const { z } = require("zod");
 
-const createSchema = z.object({
-    tahunAjaranId: z
-        .coerce.number({
-            required_error: "Tahun ajaran wajib diisi",
-        })
-        .int()
-        .positive(),
-
-    namaKelas: z
-        .string({
-            required_error: "Nama kelas wajib diisi",
-        })
-        .min(3, "Nama kelas minimal 3 karakter")
-        .max(30, "Nama kelas maksimal 30 karakter"),
-
-    tingkat: z.enum(
-        ["X", "XI", "XII"],
-        {
-            message: "Tingkat harus X, XI, atau XII",
-        }
-    ),
+const schema = z.object({
+    tingkat: z.enum(["X", "XI", "XII"]),
 
     jurusan: z
-        .string({
-            required_error: "Jurusan wajib diisi",
-        })
-        .min(2, "Jurusan minimal 2 karakter")
-        .max(50, "Jurusan maksimal 50 karakter"),
+        .string()
+        .trim()
+        .min(2)
+        .max(50),
 
-    waliKelas: z
-        .string({
-            required_error: "Wali kelas wajib diisi",
-        })
-        .min(3, "Wali kelas minimal 3 karakter")
-        .max(100, "Wali kelas maksimal 100 karakter"),
+    rombel: z
+        .string()
+        .trim()
+        .min(1)
+        .max(10),
 });
 
-const updateSchema = createSchema;
-
 module.exports = {
-    createSchema,
-    updateSchema,
+    createSchema: schema,
+    updateSchema: schema,
 };

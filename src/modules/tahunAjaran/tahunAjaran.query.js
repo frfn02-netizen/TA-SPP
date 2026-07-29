@@ -26,12 +26,14 @@ const create = async (data, conn = db) => {
         INSERT INTO tahun_ajaran
         (
             nama,
+            semester,
             aktif
         )
-        VALUES (?,?)
+        VALUES (?, ?, ?)
         `,
         [
             data.nama,
+            data.semester,
             data.aktif
         ]
     );

@@ -156,6 +156,18 @@ const updateStatus = async (
     ]
   );
 };
+const removeBySiswaId = async (conn, siswaId) => {
+    await conn.execute(
+        `
+        DELETE t
+        FROM transaksi t
+        JOIN tagihan tg
+            ON t.tagihan_id = tg.id
+        WHERE tg.siswa_id = ?
+        `,
+        [siswaId]
+    );
+};
 
 module.exports = {
   create,
@@ -165,4 +177,5 @@ module.exports = {
   findByOrderId,
   updatePayment,
   updateStatus,
+  removeBySiswaId,
 };

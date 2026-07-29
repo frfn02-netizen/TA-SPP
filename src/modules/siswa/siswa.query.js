@@ -1,21 +1,21 @@
 const db = require("../../config/database");
 
 const getAll = async () => {
-
     const [rows] = await db.execute(`
         SELECT
-
             s.id,
-
             s.nisn,
-
             s.nama,
-
-            k.nama_kelas,
+            s.jenis_kelamin,
+            s.alamat,
+            s.no_hp,
 
             u.username,
 
-            s.no_telp_ortu
+            k.id AS kelas_id,
+            k.tingkat,
+            k.jurusan,
+            k.rombel
 
         FROM siswa s
 
@@ -32,16 +32,23 @@ const getAll = async () => {
 };
 
 const getById = async (id) => {
-
     const [rows] = await db.execute(
         `
         SELECT
-
-            s.*,
+            s.id,
+            s.user_id,
+            s.kelas_id,
+            s.nisn,
+            s.nama,
+            s.jenis_kelamin,
+            s.alamat,
+            s.no_hp,
 
             u.username,
 
-            k.nama_kelas
+            k.tingkat,
+            k.jurusan,
+            k.rombel
 
         FROM siswa s
 
@@ -60,51 +67,88 @@ const getById = async (id) => {
 };
 
 const findByNisn = async (nisn) => {
-  const [rows] = await db.execute("SELECT id FROM siswa WHERE nisn = ? LIMIT 1", [nisn]);
-  return rows[0];
-};
+    const [rows] = await db.execute(
+        `
+        SELECT id
+        FROM siswa
+        WHERE nisn = ?
+        LIMIT 1
+        `,
+        [nisn]
+    );
 
-const findKelasById = async (id) => {
-  const [rows] = await db.execute("SELECT id FROM kelas WHERE id = ? LIMIT 1", [id]);
-  return rows[0];
+    return rows[0];
 };
 
 const create = async (conn, data) => {
-
     const [result] = await conn.execute(
         `
-        INSERT INTO siswa(
-
+        INSERT INTO siswa
+        (
             user_id,
-
             kelas_id,
-
             nisn,
-
             nama,
-
-            no_telp_ortu
-
+            jenis_kelamin,
+            alamat,
+            no_hp
         )
-
-        VALUES(?,?,?,?,?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
         [
-
             data.userId,
-
             data.kelasId,
-
             data.nisn,
-
             data.nama,
-
-            data.noTelpOrtu || null
-
+            data.jenisKelamin,
+            data.alamat,
+            data.noHp,
         ]
     );
 
     return result.insertId;
-
 };
-module.exports = { getAll, getById, findByNisn, findKelasById, create };
+
+const update = async (conn, id, data) => {
+    await conn.execute(
+        `
+        UPDATE siswa
+        SET
+            kelas_id = ?,
+            nisn = ?,
+            nama = ?,
+            jenis_kelamin = ?,
+            alamat = ?,
+            no_hp = ?
+        WHERE id = ?
+        `,
+        [
+            data.kelasId,
+            data.nisn,
+            data.nama,
+            data.jenisKelamin,
+            data.alamat,
+            data.noHp,
+            id,
+        ]
+    );
+};
+
+const remove = async (conn, id) => {
+    await conn.execute(
+        `
+        DELETE FROM siswa
+        WHERE id = ?
+        `,
+        [id]
+    );
+};
+
+module.exports = {
+    getAll,
+    getById,
+    findByNisn,
+    create,
+    update,
+    remove,
+};

@@ -11,22 +11,21 @@ const getAll = async () => {
   return rows;
 };
 const updateStatus = async (
-    executor,
-    id,
-    status
+  executor,
+  id,
+  status
 ) => {
-
-    await executor.execute(
-        `
-        UPDATE tagihan
-        SET status = ?
-        WHERE id = ?
-        `,
-        [
-            status,
-            id
-        ]
-    );
+  await executor.execute(
+    `
+    UPDATE tagihan
+    SET status = ?
+    WHERE id = ?
+    `,
+    [
+      status,
+      id,
+    ]
+  );
 };
 
 const getByUserId = async (userId) => {
@@ -79,11 +78,23 @@ LIMIT 1;
 
   return rows[0];
 };
+const removeBySiswaId = async (conn, siswaId) => {
+    await conn.execute(
+        `
+        DELETE FROM tagihan
+        WHERE siswa_id = ?
+        `,
+        [siswaId]
+    );
+};
 
-module.exports = { 
+module.exports = {
   getAll,
   getByUserId,
   siswaExists,
   tahunAjaranExists,
   findById,
-  createTagihan };
+  createTagihan,
+  updateStatus,
+  removeBySiswaId,
+};

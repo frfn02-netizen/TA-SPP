@@ -18,7 +18,14 @@ const verifySignature = ({
     )
     .digest("hex");
 
-  return hash === signatureKey;
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(hash),
+      Buffer.from(signatureKey)
+    );
+  } catch {
+    return false;
+  }
 };
 
 module.exports = {

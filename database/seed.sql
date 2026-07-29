@@ -1,38 +1,161 @@
 USE spp_qris;
 
--- Admin awal. Password: Admin123!
-INSERT IGNORE INTO users (username, password, role, must_change_password, is_active)
-VALUES (
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE transaksi;
+TRUNCATE TABLE tagihan;
+TRUNCATE TABLE siswa;
+TRUNCATE TABLE tahun_ajaran;
+TRUNCATE TABLE kelas;
+TRUNCATE TABLE users;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+INSERT INTO users (
+    username,
+    password,
+    role
+)
+VALUES
+(
     'admin',
-    '$2b$10$cHgn0AnrIc.ByZILXQpb5OkwSjY6GfyV.sxrhXnIBZxMoc5w9qLky',
-    'ADMIN',
-    TRUE,
+    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
+    'ADMIN'
+),
+(
+    '20260001',
+    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
+    'SISWA'
+),
+(
+    '20260002',
+    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
+    'SISWA'
+),
+(
+    '20260003',
+    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
+    'SISWA'
+);
+
+INSERT INTO kelas (
+    tingkat,
+    jurusan,
+    rombel
+)
+VALUES
+('XII','RPL','1'),
+('XII','RPL','2'),
+('XII','TKJ','1');
+
+INSERT INTO tahun_ajaran (
+    nama,
+    semester,
+    aktif
+)
+
+VALUES
+(
+    '2026/2027',
+    'GANJIL',
     TRUE
 );
 
--- Tahun ajaran aktif awal.
-INSERT IGNORE INTO tahun_ajaran (nama, aktif)
-VALUES ('2026/2027', TRUE);
+INSERT INTO siswa (
+    user_id,
+    kelas_id,
+    nis,
+    nisn,
+    nama,
+    jenis_kelamin,
+    alamat,
+    no_hp
+)
+VALUES
+(
+    2,
+    1,
+    '20260001',
+    '357800000001',
+    'Budi Santoso',
+    'L',
+    'Mojokerto',
+    '081234567891'
+),
+(
+    3,
+    1,
+    '20260002',
+    '357800000002',
+    'Andi Pratama',
+    'L',
+    'Mojokerto',
+    '081234567892'
+),
+(
+    4,
+    2,
+    '20260003',
+    '357800000003',
+    'Siti Rahma',
+    'P',
+    'Mojokerto',
+    '081234567893'
+);
 
--- Kelas contoh untuk tahun ajaran awal.
-INSERT INTO kelas (tahun_ajaran_id, nama_kelas, tingkat, jurusan, wali_kelas)
-SELECT id, 'X IPA 1', 'X', 'IPA', 'Wali Kelas X IPA 1'
-FROM tahun_ajaran ta
-WHERE ta.nama = '2026/2027'
-  AND NOT EXISTS (
-      SELECT 1
-      FROM kelas
-      WHERE nama_kelas = 'X IPA 1'
-        AND tahun_ajaran_id = ta.id
-  );
+INSERT INTO tagihan (
+    siswa_id,
+    tahun_ajaran_id,
+    bulan,
+    tahun,
+    nominal,
+    jatuh_tempo,
+    status,
+    keterangan
+)
+VALUES
 
-INSERT INTO kelas (tahun_ajaran_id, nama_kelas, tingkat, jurusan, wali_kelas)
-SELECT id, 'X IPS 1', 'X', 'IPS', 'Wali Kelas X IPS 1'
-FROM tahun_ajaran ta
-WHERE ta.nama = '2026/2027'
-  AND NOT EXISTS (
-      SELECT 1
-      FROM kelas
-      WHERE nama_kelas = 'X IPS 1'
-        AND tahun_ajaran_id = ta.id
-  );
+(
+    1,
+    1,
+    7,
+    2026,
+    250000,
+    '2026-07-10',
+    'BELUM_LUNAS',
+    'SPP Juli'
+),
+
+(
+    1,
+    1,
+    8,
+    2026,
+    250000,
+    '2026-08-10',
+    'BELUM_LUNAS',
+    'SPP Agustus'
+),
+
+(
+    2,
+    1,
+    7,
+    2026,
+    250000,
+    '2026-07-10',
+    'LUNAS',
+    'SPP Juli'
+),
+
+(
+    3,
+    1,
+    7,
+    2026,
+    250000,
+    '2026-07-10',
+    'BELUM_LUNAS',
+    'SPP Juli'
+);
+
