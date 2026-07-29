@@ -1,10 +1,16 @@
-import { z } from "zod";
+const { z } = require("zod");
 
-export const createTransaksiSchema = z.object({
-    tagihanId: z.number({
-        required_error: "Tagihan wajib dipilih",
-        invalid_type_error: "Tagihan harus berupa angka",
-    })
-    .int("Tagihan harus berupa bilangan bulat")
-    .positive("Tagihan tidak valid")
-})
+const createTransaksiSchema = z.object({
+    tagihanId: z
+        .coerce
+        .number({
+            required_error: "Tagihan wajib dipilih",
+            invalid_type_error: "Tagihan harus berupa angka",
+        })
+        .int("Tagihan harus berupa bilangan bulat")
+        .positive("Tagihan tidak valid"),
+});
+
+module.exports = {
+    createTransaksiSchema,
+};

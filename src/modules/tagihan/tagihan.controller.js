@@ -2,10 +2,81 @@ const tagihanService = require("./tagihan.service");
 const response = require("../../utils/response");
 
 const getAll = async (req, res, next) => {
-  try { return response.success(res, await tagihanService.getAll(req.user)); } catch (error) { next(error); }
-};
-const create = async (req, res, next) => {
-  try { return response.success(res, await tagihanService.create(req.body), "Tagihan berhasil dibuat", 201); } catch (error) { next(error); }
+    try {
+        const result = await tagihanService.getAll(req.user);
+        response.success(res, result);
+    } catch (err) {
+        next(err);
+    }
 };
 
-module.exports = { getAll, create };
+const getById = async (req, res, next) => {
+    try {
+        const result = await tagihanService.getById(
+            req.params.id,
+            req.user
+        );
+
+        response.success(res, result);
+    } catch (err) {
+        next(err);
+    }
+};
+
+const create = async (req, res, next) => {
+    try {
+        const result = await tagihanService.create(req.body);
+
+        response.success(
+            res,
+            result,
+            "Tagihan berhasil dibuat",
+            201
+        );
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+const update = async (req, res, next) => {
+    try {
+        const result = await tagihanService.update(
+            req.params.id,
+            req.body
+        );
+
+        response.success(
+            res,
+            result,
+            "Tagihan berhasil diperbarui"
+        );
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+const remove = async (req, res, next) => {
+    try {
+
+        await tagihanService.remove(req.params.id);
+
+        response.success(
+            res,
+            null,
+            "Tagihan berhasil dihapus"
+        );
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = {
+    getAll,
+    getById,
+    create,
+    update,
+    remove,
+};

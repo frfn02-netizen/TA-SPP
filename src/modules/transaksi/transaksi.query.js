@@ -169,6 +169,82 @@ const removeBySiswaId = async (conn, siswaId) => {
     );
 };
 
+const findByUserId = async (userId) => {
+
+    const [rows] = await db.execute(
+        `
+        SELECT
+            t.*,
+
+            tg.bulan,
+            tg.tahun,
+            tg.nominal,
+            tg.status,
+
+            s.nama,
+            s.nisn
+
+        FROM transaksi t
+
+        JOIN tagihan tg
+            ON tg.id = t.tagihan_id
+
+        JOIN siswa s
+            ON s.id = tg.siswa_id
+
+        WHERE s.user_id = ?
+
+        ORDER BY t.created_at DESC
+        `,
+        [userId]
+    );
+
+    return rows;
+
+};
+
+const findByIdAndUserId = async (
+    id,
+    userId
+) => {
+
+    const [rows] = await db.execute(
+        `
+        SELECT
+            t.*,
+
+            tg.bulan,
+            tg.tahun,
+            tg.nominal,
+            tg.status,
+
+            s.nama,
+            s.nisn
+
+        FROM transaksi t
+
+        JOIN tagihan tg
+            ON tg.id = t.tagihan_id
+
+        JOIN siswa s
+            ON s.id = tg.siswa_id
+
+        WHERE
+            t.id = ?
+            AND s.user_id = ?
+
+        LIMIT 1
+        `,
+        [
+            id,
+            userId
+        ]
+    );
+
+    return rows[0];
+
+};
+
 module.exports = {
   create,
   findAll,
@@ -178,4 +254,6 @@ module.exports = {
   updatePayment,
   updateStatus,
   removeBySiswaId,
+  findByUserId,
+  findByIdAndUserId
 };

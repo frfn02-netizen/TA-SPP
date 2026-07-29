@@ -42,8 +42,8 @@ const createPayment = async ({
     );
     console.error(error);
 
-    throw new Error(
-      "Gagal membuat transaksi pembayaran."
+    throw new AppError(
+      "Gagal membuat transaksi pembayaran.",
     );
   }
 };

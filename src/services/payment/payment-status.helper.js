@@ -1,20 +1,37 @@
 const mapStatus = (status) => {
-  switch (status) {
-    case "settlement":
-      return "SETTLEMENT";
+    switch (status) {
 
-    case "pending":
-      return "PENDING";
+        case "capture":
+            return "SETTLEMENT";
 
-    case "expire":
-      return "EXPIRE";
+        case "settlement":
+            return "SETTLEMENT";
 
-    case "cancel":
-      return "CANCEL";
+        case "pending":
+            return "PENDING";
 
-    default:
-      return "PENDING";
-  }
+        case "deny":
+            return "DENY";
+
+        case "cancel":
+            return "CANCEL";
+
+        case "expire":
+            return "EXPIRE";
+
+        case "refund":
+            return "REFUND";
+
+        case "partial_refund":
+            return "REFUND";
+
+        case "chargeback":
+            return "CHARGEBACK";
+
+        default:
+            return "PENDING";
+
+    }
 };
 
 module.exports = mapStatus;
