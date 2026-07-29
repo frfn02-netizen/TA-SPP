@@ -23,6 +23,8 @@ const create = async (
 
     const { tagihanId } = payload;
 
+    const tagihan = await tagihanQuery.getById(tagihanId);
+
     if (!tagihan) {
         throw new AppError(
             "Tagihan tidak ditemukan",

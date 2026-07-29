@@ -4,6 +4,13 @@ const validate = (schema) => {
       req.body = schema.parse(req.body);
       next();
     } catch (error) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({
+          success: false,
+          message: "Validasi gagal",
+          errors: error.errors,
+        });
+      }
       next(error);
     }
   };
