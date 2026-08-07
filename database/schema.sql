@@ -39,7 +39,6 @@ CREATE TABLE kelas (
 
     jurusan VARCHAR(50) NOT NULL,
 
-    rombel VARCHAR(10) NOT NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -49,7 +48,8 @@ CREATE TABLE kelas (
     UNIQUE KEY uk_kelas (
         tingkat,
         jurusan,
-        rombel
+        
+
     )
 
 );

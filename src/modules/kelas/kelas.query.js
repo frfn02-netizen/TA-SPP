@@ -7,11 +7,10 @@ const getAll = async () => {
             id,
             tingkat,
             jurusan,
-            rombel,
             created_at,
             updated_at
         FROM kelas
-        ORDER BY tingkat, jurusan, rombel
+        ORDER BY tingkat, jurusan
         `
     );
 
@@ -25,7 +24,6 @@ const getById = async (id) => {
             id,
             tingkat,
             jurusan,
-            rombel,
             created_at,
             updated_at
         FROM kelas
@@ -37,17 +35,16 @@ const getById = async (id) => {
     return rows[0];
 };
 
-const findByKelas = async (tingkat, jurusan, rombel) => {
+const findByKelas = async (tingkat, jurusan) => {
     const [rows] = await db.execute(
         `
         SELECT *
         FROM kelas
         WHERE tingkat = ?
           AND jurusan = ?
-          AND rombel = ?
         LIMIT 1
         `,
-        [tingkat, jurusan, rombel]
+        [tingkat, jurusan]
     );
 
     return rows[0];
@@ -59,15 +56,13 @@ const create = async (data) => {
         INSERT INTO kelas
         (
             tingkat,
-            jurusan,
-            rombel
+            jurusan
         )
-        VALUES (?, ?, ?)
+        VALUES (?, ?)
         `,
         [
             data.tingkat,
-            data.jurusan,
-            data.rombel
+            data.jurusan
         ]
     );
 
@@ -80,14 +75,12 @@ const update = async (id, data) => {
         UPDATE kelas
         SET
             tingkat = ?,
-            jurusan = ?,
-            rombel = ?
+            jurusan = ?
         WHERE id = ?
         `,
         [
             data.tingkat,
             data.jurusan,
-            data.rombel,
             id
         ]
     );
