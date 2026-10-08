@@ -1,0 +1,98 @@
+<main class="flex min-h-dvh items-center justify-center bg-canvas px-4 py-10">
+  <div class="w-full max-w-sm">
+    <div class="mb-6 text-center">
+      <p class="text-xl font-bold text-navy-900">SPP QRIS</p>
+      <p class="text-[13px] font-medium text-ink-600">Administrasi Pembayaran</p>
+    </div>
+
+    <div class="rounded-card border border-line-200 bg-surface p-6 sm:p-7">
+      <h1 class="text-xl font-semibold text-navy-900">Masuk</h1>
+      <p class="mt-1 text-sm text-ink-600">
+        Gunakan akun administrator untuk melanjutkan.
+      </p>
+
+      <form class="mt-6 space-y-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        @if (errorMessage()) {
+          <div
+            class="flex items-start gap-2 rounded-control border border-red-700/20 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+            role="alert"
+          >
+            <app-icon name="TriangleAlert" [size]="16" iconClass="mt-0.5 text-red-700" />
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <div>
+          <label for="username" class="mb-1.5 block text-[13px] font-medium text-ink-700">
+            Nama pengguna
+          </label>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 placeholder:text-ink-600/60 focus:border-navy-900"
+            [attr.aria-invalid]="username.invalid && username.touched"
+            [attr.aria-describedby]="username.invalid && username.touched ? 'username-error' : null"
+          />
+          @if (username.invalid && username.touched) {
+            <p id="username-error" class="mt-1.5 text-xs text-red-700">
+              @if (username.hasError('required')) {
+                Nama pengguna wajib diisi.
+              } @else {
+                Nama pengguna minimal 3 karakter.
+              }
+            </p>
+          }
+        </div>
+
+        <div>
+          <label for="password" class="mb-1.5 block text-[13px] font-medium text-ink-700">
+            Kata sandi
+          </label>
+          <div class="relative">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 pr-11 text-sm text-ink-900 placeholder:text-ink-600/60 focus:border-navy-900"
+              [attr.aria-invalid]="password.invalid && password.touched"
+              [attr.aria-describedby]="password.invalid && password.touched ? 'password-error' : null"
+            />
+            <button
+              type="button"
+              (click)="togglePassword()"
+              class="absolute right-0 top-0 inline-flex h-11 w-11 items-center justify-center rounded-control text-ink-600 hover:text-ink-900"
+              [attr.aria-label]="showPassword() ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <app-icon [name]="showPassword() ? 'EyeOff' : 'Eye'" [size]="18" />
+            </button>
+          </div>
+          @if (password.invalid && password.touched) {
+            <p id="password-error" class="mt-1.5 text-xs text-red-700">
+              @if (password.hasError('required')) {
+                Kata sandi wajib diisi.
+              } @else {
+                Kata sandi minimal 6 karakter.
+              }
+            </p>
+          }
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="submitting()"
+          class="inline-flex h-11 w-full items-center justify-center rounded-control bg-navy-900 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {{ submitting() ? 'Memproses...' : 'Masuk' }}
+        </button>
+      </form>
+    </div>
+
+    <p class="mt-4 text-center text-xs text-ink-600">
+      Sistem administrasi pembayaran SPP dengan QRIS.
+    </p>
+  </div>
+</main>

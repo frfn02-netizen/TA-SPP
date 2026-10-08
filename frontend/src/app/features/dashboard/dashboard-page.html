@@ -1,0 +1,174 @@
+<app-page-header
+  title="Dashboard"
+  description="Ringkasan administrasi pembayaran SPP."
+/>
+
+@if (loading()) {
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
+    @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+      <div class="rounded-card border border-line-200 bg-surface p-5">
+        <div class="flex items-center justify-between">
+          <div class="h-3 w-24 animate-pulse rounded bg-slate-50"></div>
+          <div class="h-4 w-4 animate-pulse rounded bg-slate-50"></div>
+        </div>
+        <div class="mt-4 h-7 w-20 animate-pulse rounded bg-slate-50"></div>
+      </div>
+    }
+  </div>
+
+  <div class="mt-6 rounded-card border border-line-200 bg-surface p-6" aria-hidden="true">
+    <div class="h-4 w-32 animate-pulse rounded bg-slate-50"></div>
+    <div class="mt-3 h-3 w-56 animate-pulse rounded bg-slate-50"></div>
+    <div class="mt-5 h-2.5 w-full animate-pulse rounded bg-slate-50"></div>
+    <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="h-16 animate-pulse rounded-control bg-slate-50"></div>
+      <div class="h-16 animate-pulse rounded-control bg-slate-50"></div>
+    </div>
+  </div>
+
+  <p class="sr-only" role="status">Memuat data dashboard.</p>
+} @else if (error()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="TriangleAlert"
+      title="Data dashboard tidak dapat dimuat"
+      [message]="error() ?? ''"
+      actionLabel="Muat ulang"
+      actionIcon="RefreshCw"
+      (action)="load()"
+    />
+  </div>
+} @else if (stats(); as s) {
+  <section class="mt-6" aria-label="Ringkasan indikator">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <app-stat-card
+        label="Total Siswa"
+        [value]="s.totalSiswa"
+        icon="GraduationCap"
+      />
+      <app-stat-card
+        label="Total Tagihan"
+        [value]="s.totalTagihan"
+        icon="ReceiptText"
+      />
+      <app-stat-card
+        label="Belum Lunas"
+        [value]="s.totalBelumLunas"
+        icon="Clock"
+        tone="attention"
+        hint="Perlu tindak lanjut"
+      />
+      <app-stat-card
+        label="Lunas"
+        [value]="s.totalLunas"
+        icon="CircleCheck"
+        tone="pay"
+      />
+      <app-stat-card
+        label="Total Transaksi"
+        [value]="s.totalTransaksi"
+        icon="CreditCard"
+      />
+      <app-stat-card
+        label="Total Pendapatan"
+        [value]="s.totalPendapatan"
+        icon="Banknote"
+        format="currency"
+        tone="pay"
+      />
+    </div>
+  </section>
+
+  <section class="mt-6 rounded-card border border-line-200 bg-surface p-5 sm:p-6">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <h2 class="text-xl font-semibold text-ink-900">Status Tagihan</h2>
+      <p class="text-xs text-ink-600">
+        Dari {{ formatNumber(s.totalTagihan) }} tagihan
+      </p>
+    </div>
+    <p class="mt-1 text-sm text-ink-600">
+      Perbandingan tagihan yang sudah dan belum dibayar.
+    </p>
+
+    @if (hasBills()) {
+      <div class="mt-5">
+        <div
+          class="flex h-2.5 w-full gap-1"
+          role="img"
+          [attr.aria-label]="
+            'Tagihan lunas ' +
+            paidPercent() +
+            ' persen, belum lunas ' +
+            outstandingPercent() +
+            ' persen'
+          "
+        >
+          @if (paidPercent() > 0) {
+            <span
+              class="rounded-[3px] bg-green-600"
+              [style.width.%]="paidPercent()"
+            ></span>
+          }
+          @if (outstandingPercent() > 0) {
+            <span
+              class="rounded-[3px] bg-amber-700"
+              [style.width.%]="outstandingPercent()"
+            ></span>
+          }
+        </div>
+
+        <dl class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div
+            class="flex items-center justify-between gap-3 rounded-control border border-line-200 px-4 py-3"
+          >
+            <dt class="flex items-center gap-2 text-sm text-ink-700">
+              <span
+                class="h-2.5 w-2.5 rounded-[2px] bg-green-600"
+                aria-hidden="true"
+              ></span>
+              Lunas
+            </dt>
+            <dd class="text-right">
+              <span class="block text-lg font-semibold text-ink-900 tabular-money">
+                {{ formatNumber(s.totalLunas) }}
+              </span>
+              <span class="text-xs text-ink-600">
+                {{ paidPercent() }}% dari total
+              </span>
+            </dd>
+          </div>
+
+          <div
+            class="flex items-center justify-between gap-3 rounded-control border border-line-200 px-4 py-3"
+          >
+            <dt class="flex items-center gap-2 text-sm text-ink-700">
+              <span
+                class="h-2.5 w-2.5 rounded-[2px] bg-amber-700"
+                aria-hidden="true"
+              ></span>
+              Belum Lunas
+            </dt>
+            <dd class="text-right">
+              <span class="block text-lg font-semibold text-ink-900 tabular-money">
+                {{ formatNumber(s.totalBelumLunas) }}
+              </span>
+              <span class="text-xs text-ink-600">
+                {{ outstandingPercent() }}% dari total
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    } @else {
+      <div
+        class="mt-5 flex items-start gap-2 rounded-control border border-line-200 bg-canvas px-4 py-3 text-sm text-ink-600"
+      >
+        <app-icon name="Inbox" [size]="16" iconClass="mt-0.5 text-ink-600" />
+        <span>
+          Belum ada tagihan yang tercatat. Data status akan tampil setelah
+          tagihan dibuat.
+        </span>
+      </div>
+    }
+  </section>
+}

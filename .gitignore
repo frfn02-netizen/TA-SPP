@@ -1,3 +1,40 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Environment / secrets
 .env
-prisma/dev.db
+.env.*
+!.env.example
+
+# Backend
+backend/prisma/dev.db
+
+# Frontend build output
+dist/
+out-tsc/
+bazel-out/
+.angular/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# Test / coverage
+coverage/
+libpeerconnection.log
+testem.log
+
+# Screenshots / temp
+__screenshots__/
+*.tmp
+
+# Editors / OS
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.sublime-workspace
+.DS_Store
+Thumbs.db

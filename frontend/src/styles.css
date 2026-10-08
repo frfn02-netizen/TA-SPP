@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+@import '@fontsource/plus-jakarta-sans/400.css';
+@import '@fontsource/plus-jakarta-sans/500.css';
+@import '@fontsource/plus-jakarta-sans/600.css';
+@import '@fontsource/plus-jakarta-sans/700.css';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+
+  --color-navy-900: #14213d;
+  --color-navy-800: #1d2e52;
+
+  --color-green-600: #159a6c;
+  --color-green-700: #0e7a55;
+  --color-green-50: #e7f6ef;
+
+  --color-ink-900: #172033;
+  --color-ink-700: #344054;
+  --color-ink-600: #667085;
+
+  --color-line-200: #e4e7ec;
+  --color-line-300: #d0d5dd;
+
+  --color-amber-700: #b54708;
+  --color-amber-800: #93370d;
+  --color-amber-50: #fff6e8;
+
+  --color-red-700: #b42318;
+  --color-red-50: #fef3f2;
+
+  --color-slate-50: #f2f4f7;
+
+  --radius-card: 8px;
+  --radius-control: 6px;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-navy-900);
+    outline-offset: 2px;
+  }
+
+  .tabular-money {
+    font-variant-numeric: tabular-nums;
+  }
+}

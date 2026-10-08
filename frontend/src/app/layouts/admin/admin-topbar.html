@@ -1,0 +1,35 @@
+<header
+  class="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-line-200 bg-surface px-4 sm:px-6 lg:px-8"
+>
+  <div class="flex min-w-0 items-center gap-3">
+    <button
+      type="button"
+      class="inline-flex h-10 w-10 items-center justify-center rounded-control text-ink-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900 lg:hidden"
+      (click)="menuToggle.emit()"
+      aria-label="Buka menu navigasi"
+      aria-controls="admin-sidebar"
+      [attr.aria-expanded]="menuOpen()"
+    >
+      <app-icon name="Menu" [size]="20" />
+    </button>
+    <p class="truncate text-sm font-semibold text-ink-900">{{ pageTitle() }}</p>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <div class="hidden text-right sm:block">
+      <p class="text-sm font-medium leading-tight text-ink-900">
+        {{ username() }}
+      </p>
+      <p class="text-xs text-ink-600">{{ roleLabel() }}</p>
+    </div>
+    <button
+      type="button"
+      (click)="logout.emit()"
+      aria-label="Keluar dari akun"
+      class="inline-flex h-10 items-center gap-2 rounded-control border border-line-300 bg-surface px-3 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900"
+    >
+      <app-icon name="LogOut" [size]="16" />
+      <span class="hidden sm:inline">Keluar</span>
+    </button>
+  </div>
+</header>
