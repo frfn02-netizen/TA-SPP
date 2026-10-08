@@ -28,7 +28,6 @@ CREATE TABLE users (
 );
 
 CREATE TABLE kelas (
-
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     tingkat ENUM(
@@ -39,7 +38,6 @@ CREATE TABLE kelas (
 
     jurusan VARCHAR(50) NOT NULL,
 
-
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -47,22 +45,16 @@ CREATE TABLE kelas (
 
     UNIQUE KEY uk_kelas (
         tingkat,
-        jurusan,
-        
-
+        jurusan
     )
-
 );
 
 CREATE TABLE siswa (
-
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     user_id INT NOT NULL,
 
     kelas_id INT NOT NULL,
-
-    nis VARCHAR(20) NOT NULL UNIQUE,
 
     nisn VARCHAR(20) NOT NULL UNIQUE,
 
@@ -96,7 +88,6 @@ CREATE TABLE siswa (
 );
 
 CREATE TABLE tahun_ajaran (
-
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     nama VARCHAR(20) NOT NULL UNIQUE,
@@ -115,7 +106,6 @@ CREATE TABLE tahun_ajaran (
 );
 
 CREATE TABLE tagihan (
-
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     siswa_id INT NOT NULL,
@@ -160,7 +150,7 @@ CREATE TABLE tagihan (
     CONSTRAINT chk_bulan
         CHECK (bulan BETWEEN 1 AND 12),
 
-    UNIQUE KEY uk_tagihan (
+    UNIQUE KEY uk_tagihan_periode (
         siswa_id,
         tahun_ajaran_id,
         bulan,
@@ -170,11 +160,9 @@ CREATE TABLE tagihan (
     INDEX idx_tagihan_status (status),
 
     INDEX idx_tagihan_siswa (siswa_id)
-
 );
 
 CREATE TABLE transaksi (
-
     id INT AUTO_INCREMENT PRIMARY KEY,
 
     tagihan_id INT NOT NULL,
@@ -220,8 +208,7 @@ CREATE TABLE transaksi (
 
     UNIQUE KEY uk_order_id (order_id),
 
-    UNIQUE KEY uk_tagihan (tagihan_id),
+    UNIQUE KEY uk_transaksi_tagihan (tagihan_id),
 
     INDEX idx_status (transaction_status)
-
 );

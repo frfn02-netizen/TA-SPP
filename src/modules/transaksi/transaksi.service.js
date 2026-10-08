@@ -55,7 +55,8 @@ const create = async (
             tagihanId
         );
 
-    if (existing) {
+    // Transaksi PENDING yang masih berlaku dipakai ulang.
+    if (existing && existing.transaction_status === "PENDING") {
         return {
             id: existing.id,
             orderId: existing.order_id,
@@ -86,6 +87,38 @@ const create = async (
     try {
 
         await conn.beginTransaction();
+
+        // Tagihan sudah pernah punya transaksi (EXPIRE/CANCEL).
+        // Baris transaksi bersifat unik per tagihan, jadi dipakai ulang.
+        if (existing) {
+
+            await transaksiQuery.updatePayment(
+                conn,
+                {
+                    id: existing.id,
+                    orderId,
+                    grossAmount:
+                        tagihan.nominal,
+                    snapToken:
+                        payment.snapToken,
+                    paymentUrl:
+                        payment.paymentUrl,
+                }
+            );
+
+            await conn.commit();
+
+            return {
+                id: existing.id,
+                orderId,
+                transactionStatus:
+                    "PENDING",
+                snapToken:
+                    payment.snapToken,
+                paymentUrl:
+                    payment.paymentUrl,
+            };
+        }
 
         const transaksiId =
             await transaksiQuery.create(
@@ -230,7 +263,8 @@ const handleWebhook = async (
 
         const transactionStatus =
             mapStatus(
-                status.transaction_status
+                status.transaction_status,
+                status.fraud_status
             );
 
         await transaksiQuery.updateStatus(

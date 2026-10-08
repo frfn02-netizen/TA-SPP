@@ -26,7 +26,8 @@ const create = async (req, res, next) => {
         response.success(
             res,
             result,
-            "The academic year has been successfully created."
+            "The academic year has been successfully created.",
+            201
         );
 
     } catch (err) {

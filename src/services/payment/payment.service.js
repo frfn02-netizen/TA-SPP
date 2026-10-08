@@ -49,29 +49,6 @@ const createPayment = async ({
   }
 };
 
-const handleNotification = async (
-  notification
-) => {
-  try {
-    const status =
-      await snap.transaction.notification(
-        notification
-      );
-
-    return status;
-  } catch (error) {
-    console.error(
-      "Midtrans Notification Error:"
-    );
-    console.error(error);
-
-    throw new Error(
-      "Gagal memproses notifikasi Midtrans."
-    );
-  }
-};
-
 module.exports = {
   createPayment,
-  handleNotification,
 };

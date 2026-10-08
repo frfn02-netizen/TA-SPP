@@ -101,6 +101,8 @@ const updatePayment = async (
   executor,
   {
     id,
+    orderId,
+    grossAmount,
     snapToken,
     paymentUrl,
   }
@@ -109,11 +111,21 @@ const updatePayment = async (
     `
     UPDATE transaksi
     SET
+      order_id = ?,
+      gross_amount = ?,
       snap_token = ?,
-      payment_url = ?
+      payment_url = ?,
+      transaction_status = 'PENDING',
+      payment_type = NULL,
+      transaction_time = NULL,
+      settlement_time = NULL,
+      paid_at = NULL,
+      midtrans_response = NULL
     WHERE id = ?
     `,
     [
+      orderId,
+      grossAmount,
       snapToken,
       paymentUrl,
       id,
@@ -156,19 +168,6 @@ const updateStatus = async (
     ]
   );
 };
-const removeBySiswaId = async (conn, siswaId) => {
-    await conn.execute(
-        `
-        DELETE t
-        FROM transaksi t
-        JOIN tagihan tg
-            ON t.tagihan_id = tg.id
-        WHERE tg.siswa_id = ?
-        `,
-        [siswaId]
-    );
-};
-
 const findByUserId = async (userId) => {
 
     const [rows] = await db.execute(
@@ -253,7 +252,6 @@ module.exports = {
   findByOrderId,
   updatePayment,
   updateStatus,
-  removeBySiswaId,
   findByUserId,
   findByIdAndUserId
 };

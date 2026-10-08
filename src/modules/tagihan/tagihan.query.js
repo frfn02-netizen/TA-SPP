@@ -21,7 +21,6 @@ const getAll = async () => {
             k.id AS kelas_id,
             k.tingkat,
             k.jurusan,
-            k.rombel,
 
             ta.nama AS tahun_ajaran,
             ta.semester
@@ -87,10 +86,10 @@ const getById = async (id) => {
 
             s.nama,
             s.nisn,
+            s.user_id,
 
             k.tingkat,
             k.jurusan,
-            k.rombel,
 
             ta.nama AS tahun_ajaran,
             ta.semester
@@ -198,7 +197,7 @@ const create = async (conn, data) => {
             data.tahun,
             data.nominal,
             data.jatuhTempo,
-            "BELUM_BAYAR",
+            "BELUM_LUNAS",
             data.keterangan ?? null,
         ]
     );
@@ -279,7 +278,6 @@ const getByIdAndUserId = async (id, userId) => {
 
             k.tingkat,
             k.jurusan,
-            k.rombel,
 
             ta.nama AS tahun_ajaran,
             ta.semester

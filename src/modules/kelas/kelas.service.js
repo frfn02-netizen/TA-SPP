@@ -18,8 +18,7 @@ const getById = async (id) => {
 const create = async (data) => {
     const kelasExist = await kelasQuery.findByKelas(
         data.tingkat,
-        data.jurusan,
-        data.rombel
+        data.jurusan
     );
 
     if (kelasExist) {
@@ -40,8 +39,7 @@ const update = async (id, data) => {
 
     const kelasExist = await kelasQuery.findByKelas(
         data.tingkat,
-        data.jurusan,
-        data.rombel
+        data.jurusan
     );
 
     if (kelasExist && kelasExist.id !== Number(id)) {

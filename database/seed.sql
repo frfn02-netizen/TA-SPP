@@ -11,151 +11,50 @@ TRUNCATE TABLE users;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
-INSERT INTO users (
-    username,
-    password,
-    role
-)
-VALUES
-(
-    'admin',
-    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
-    'ADMIN'
-),
-(
-    '20260001',
-    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
-    'SISWA'
-),
-(
-    '20260002',
-    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
-    'SISWA'
-),
-(
-    '20260003',
-    '$2b$10$XFT584YDAv6QtLVIRdj6eO8P1d5sqifwMrPOb30B3jMvv93sVtEO.',
-    'SISWA'
-);
+-- Password admin   : admin123
+-- Password siswa   : sama dengan NISN (contoh 20260001)
+INSERT INTO users (username, password, role) VALUES
+('admin',    '$2b$10$yu0xrBvQUW5afqL5w8nfMecmaVoyg.kluw5.4ggteZXMHHM0LnAnG', 'ADMIN'),
+('20260001', '$2b$10$HoNnUdhGQaiopOGmVVOHxeRrhc4oXkdbKzSFRVJkeWCoe3FeI/XxO', 'SISWA'),
+('20260002', '$2b$10$YF35eDNLAqLOVrFkJNdaV.OeiXpA64/Xif.EPgK4PaegpUtpVVbnC', 'SISWA'),
+('20260003', '$2b$10$CUJZ7jDzr6.AKlNd9c/IEOxkNC8h2hpL.kUUGgoFZ.M2TlPnY2DNe', 'SISWA');
 
-INSERT INTO kelas (
-    tingkat,
-    jurusan,
-    rombel
-)
-VALUES
-('XII','RPL','1'),
-('XII','RPL','2'),
-('XII','TKJ','1');
+INSERT INTO kelas (tingkat, jurusan) VALUES
+('XII', 'RPL'),
+('XII', 'TKJ'),
+('XI',  'RPL');
 
-INSERT INTO tahun_ajaran (
-    nama,
-    semester,
-    aktif
-)
+INSERT INTO tahun_ajaran (nama, semester, aktif) VALUES
+('2025/2026', 'GANJIL', TRUE);
 
-VALUES
-(
-    '2026/2027',
-    'GANJIL',
-    TRUE
-);
+INSERT INTO siswa (user_id, kelas_id, nisn, nama, jenis_kelamin, alamat, no_hp) VALUES
+(2, 1, '20260001', 'Budi Santoso', 'L', 'Mojokerto', '081234567891'),
+(3, 1, '20260002', 'Andi Pratama', 'L', 'Mojokerto', '081234567892'),
+(4, 2, '20260003', 'Siti Rahma',   'P', 'Mojokerto', '081234567893');
 
-INSERT INTO siswa (
-    user_id,
-    kelas_id,
-    nis,
-    nisn,
-    nama,
-    jenis_kelamin,
-    alamat,
-    no_hp
-)
-VALUES
-(
-    2,
-    1,
-    '20260001',
-    '357800000001',
-    'Budi Santoso',
-    'L',
-    'Mojokerto',
-    '081234567891'
-),
+INSERT INTO tagihan (siswa_id, tahun_ajaran_id, bulan, tahun, nominal, jatuh_tempo, status, keterangan) VALUES
+(1, 1, 7, 2025, 250000, '2025-07-10', 'BELUM_LUNAS', 'SPP Juli'),
+(1, 1, 8, 2025, 250000, '2025-08-10', 'BELUM_LUNAS', 'SPP Agustus'),
+(2, 1, 7, 2025, 250000, '2025-07-10', 'LUNAS',       'SPP Juli'),
+(3, 1, 7, 2025, 250000, '2025-07-10', 'BELUM_LUNAS', 'SPP Juli');
+
+INSERT INTO transaksi (
+    tagihan_id,
+    order_id,
+    gross_amount,
+    transaction_status,
+    payment_type,
+    transaction_time,
+    settlement_time,
+    paid_at
+) VALUES
 (
     3,
-    1,
-    '20260002',
-    '357800000002',
-    'Andi Pratama',
-    'L',
-    'Mojokerto',
-    '081234567892'
-),
-(
-    4,
-    2,
-    '20260003',
-    '357800000003',
-    'Siti Rahma',
-    'P',
-    'Mojokerto',
-    '081234567893'
+    'SPP-20250710-SEED01',
+    250000,
+    'SETTLEMENT',
+    'qris',
+    '2025-07-05 08:00:00',
+    '2025-07-05 08:00:05',
+    '2025-07-05 08:00:05'
 );
-
-INSERT INTO tagihan (
-    siswa_id,
-    tahun_ajaran_id,
-    bulan,
-    tahun,
-    nominal,
-    jatuh_tempo,
-    status,
-    keterangan
-)
-VALUES
-
-(
-    1,
-    1,
-    7,
-    2026,
-    250000,
-    '2026-07-10',
-    'BELUM_LUNAS',
-    'SPP Juli'
-),
-
-(
-    1,
-    1,
-    8,
-    2026,
-    250000,
-    '2026-08-10',
-    'BELUM_LUNAS',
-    'SPP Agustus'
-),
-
-(
-    2,
-    1,
-    7,
-    2026,
-    250000,
-    '2026-07-10',
-    'LUNAS',
-    'SPP Juli'
-),
-
-(
-    3,
-    1,
-    7,
-    2026,
-    250000,
-    '2026-07-10',
-    'BELUM_LUNAS',
-    'SPP Juli'
-);
-

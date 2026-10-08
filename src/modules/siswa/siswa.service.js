@@ -1,8 +1,6 @@
 const db = require("../../config/database");
 const { hashPassword } = require("../../utils/hash");
-const tagihanQuery = require("../tagihan/tagihan.query")
 const siswaQuery = require("./siswa.query");
-const transaksiQuery = require ("../transaksi/transaksi.query")
 const authQuery = require("../auth/auth.query");
 const kelasQuery = require("../kelas/kelas.query");
 

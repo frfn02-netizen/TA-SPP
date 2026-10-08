@@ -28,7 +28,8 @@ const create = async (req, res, next) => {
         response.success(
             res,
             result,
-            "Kelas berhasil ditambahkan"
+            "Kelas berhasil ditambahkan",
+            201
         );
     } catch (err) {
         next(err);

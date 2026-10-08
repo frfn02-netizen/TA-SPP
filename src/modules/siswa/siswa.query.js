@@ -14,8 +14,7 @@ const getAll = async () => {
 
             k.id AS kelas_id,
             k.tingkat,
-            k.jurusan,
-            k.rombel
+            k.jurusan
 
         FROM siswa s
 
@@ -47,8 +46,7 @@ const getById = async (id) => {
             u.username,
 
             k.tingkat,
-            k.jurusan,
-            k.rombel
+            k.jurusan
 
         FROM siswa s
 

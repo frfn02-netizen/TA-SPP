@@ -6,7 +6,7 @@ const errorMiddleware = (err, req, res, next) => {
     return res.status(400).json({
       success: false,
       message: "Validasi gagal",
-      errors: err.errors,
+      errors: err.issues ?? err.errors,
     });
   }
 

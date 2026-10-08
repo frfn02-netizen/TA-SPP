@@ -1,8 +1,10 @@
-const mapStatus = (status) => {
+const mapStatus = (status, fraudStatus) => {
     switch (status) {
 
         case "capture":
-            return "SETTLEMENT";
+            return fraudStatus === "accept"
+                ? "SETTLEMENT"
+                : "PENDING";
 
         case "settlement":
             return "SETTLEMENT";
@@ -10,23 +12,15 @@ const mapStatus = (status) => {
         case "pending":
             return "PENDING";
 
-        case "deny":
-            return "DENY";
-
-        case "cancel":
-            return "CANCEL";
-
         case "expire":
             return "EXPIRE";
 
+        case "deny":
+        case "cancel":
         case "refund":
-            return "REFUND";
-
         case "partial_refund":
-            return "REFUND";
-
         case "chargeback":
-            return "CHARGEBACK";
+            return "CANCEL";
 
         default:
             return "PENDING";

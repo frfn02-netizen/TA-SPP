@@ -10,6 +10,7 @@ const tagihanRoutes = require("./modules/tagihan/tagihan.routes");
 const errorMiddleware = require("./middlewares/error.middleware");
 const tahunAjaranRoutes = require("./modules/tahunAjaran/tahunAjaran.routes");
 const kelasRoutes = require("./modules/kelas/kelas.routes");
+const dashboardRoutes = require("./modules/dashboard/dashboard.routes");
 const app = express();
 
 app.use(cors());
@@ -25,6 +26,7 @@ app.use("/api/tagihan", tagihanRoutes);
 app.use("/api/tahun-ajaran", tahunAjaranRoutes);
 app.use("/api/kelas", kelasRoutes);
 app.use("/api/transaksi", transaksiRoutes)
+app.use("/api/dashboard", dashboardRoutes);
 app.use(errorMiddleware);
 
 module.exports = app;

@@ -53,7 +53,6 @@ Kolom:
 - id
 - tingkat
 - jurusan
-- rombel
 - created_at
 - updated_at
 
@@ -73,7 +72,6 @@ Kolom:
 - id
 - user_id
 - kelas_id
-- nis
 - nisn
 - nama
 - jenis_kelamin
