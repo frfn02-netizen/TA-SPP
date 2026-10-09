@@ -1,0 +1,351 @@
+<app-page-header
+  title="Data Siswa"
+  description="Kelola data siswa, kelas, dan akun pembayaran SPP."
+>
+  <button
+    type="button"
+    (click)="openCreate()"
+    class="inline-flex h-11 items-center justify-center gap-2 rounded-control bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900"
+  >
+    <app-icon name="Plus" [size]="16" />
+    Tambah Siswa
+  </button>
+</app-page-header>
+
+@if (success()) {
+  <div class="mt-4">
+    <app-inline-alert
+      tone="success"
+      [message]="success() ?? ''"
+      [dismissible]="true"
+      (dismissed)="dismissSuccess()"
+    />
+  </div>
+}
+
+@if (actionError()) {
+  <div class="mt-4">
+    <app-inline-alert
+      tone="error"
+      [message]="actionError() ?? ''"
+      [dismissible]="true"
+      (dismissed)="dismissActionError()"
+    />
+  </div>
+}
+
+@if (loading()) {
+  <div class="mt-6">
+    <app-table-skeleton [rows]="6" />
+  </div>
+} @else if (error()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="TriangleAlert"
+      title="Data siswa tidak dapat dimuat"
+      [message]="error() ?? ''"
+      actionLabel="Muat ulang"
+      actionIcon="RefreshCw"
+      (action)="load()"
+    />
+  </div>
+} @else {
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="relative w-full sm:max-w-xs">
+      <app-icon
+        name="Search"
+        [size]="16"
+        iconClass="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-600"
+      />
+      <input
+        type="search"
+        [value]="search()"
+        (input)="onSearch($event)"
+        placeholder="Cari nama, NISN, atau kelas"
+        aria-label="Cari siswa"
+        class="h-11 w-full rounded-control border border-line-300 bg-surface pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-600/60 focus:border-navy-900"
+      />
+    </div>
+    <p class="text-xs text-ink-600">
+      Menampilkan {{ filtered().length }} dari {{ siswa().length }} siswa
+    </p>
+  </div>
+
+  @if (siswa().length === 0) {
+    <div class="mt-4">
+      <app-state-panel
+        icon="Inbox"
+        title="Belum ada data siswa"
+        message="Tambahkan siswa pertama untuk mulai mengelola tagihan dan pembayaran SPP."
+        actionLabel="Tambah Siswa"
+        actionIcon="Plus"
+        (action)="openCreate()"
+      />
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="mt-4">
+      <app-state-panel
+        icon="Search"
+        title="Siswa tidak ditemukan"
+        message="Tidak ada siswa yang cocok dengan kata kunci pencarian."
+        actionLabel="Hapus pencarian"
+        (action)="clearSearch()"
+      />
+    </div>
+  } @else {
+    <div class="mt-4 hidden overflow-hidden rounded-card border border-line-200 bg-surface md:block">
+      <table class="w-full border-collapse text-sm">
+        <thead>
+          <tr class="border-b border-line-200 text-left text-[13px] font-medium text-ink-600">
+            <th class="px-5 py-3">NISN</th>
+            <th class="px-5 py-3">Nama</th>
+            <th class="px-5 py-3">Kelas</th>
+            <th class="px-5 py-3">Jenis Kelamin</th>
+            <th class="px-5 py-3">Nomor HP</th>
+            <th class="px-5 py-3 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filtered(); track item.id) {
+            <tr class="border-b border-line-200 last:border-0">
+              <td class="px-5 py-3 tabular-money text-ink-700">{{ item.nisn }}</td>
+              <td class="px-5 py-3 font-medium text-ink-900">{{ item.nama }}</td>
+              <td class="px-5 py-3 text-ink-700">{{ item.tingkat }} {{ item.jurusan }}</td>
+              <td class="px-5 py-3 text-ink-700">
+                {{ item.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
+              </td>
+              <td class="px-5 py-3 tabular-money text-ink-700">{{ item.no_hp }}</td>
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="openEdit(item)"
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-control border border-line-300 bg-surface text-ink-700 transition-colors hover:bg-slate-50"
+                    [attr.aria-label]="'Ubah data ' + item.nama"
+                  >
+                    <app-icon name="Pencil" [size]="16" />
+                  </button>
+                  <button
+                    type="button"
+                    (click)="confirmDelete(item)"
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-control border border-red-700/20 bg-red-50 text-red-700 transition-colors hover:bg-red-700/10"
+                    [attr.aria-label]="'Hapus data ' + item.nama"
+                  >
+                    <app-icon name="Trash2" [size]="16" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="mt-4 flex flex-col gap-3 md:hidden">
+      @for (item of filtered(); track item.id) {
+        <li class="rounded-card border border-line-200 bg-surface p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate font-semibold text-ink-900">{{ item.nama }}</p>
+              <p class="mt-0.5 text-xs tabular-money text-ink-600">{{ item.nisn }}</p>
+            </div>
+            <span class="shrink-0 rounded-[4px] bg-slate-50 px-2 py-1 text-xs font-medium text-ink-700">
+              {{ item.tingkat }} {{ item.jurusan }}
+            </span>
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <dt class="text-ink-600">Jenis Kelamin</dt>
+              <dd class="mt-0.5 text-ink-900">
+                {{ item.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-ink-600">Nomor HP</dt>
+              <dd class="mt-0.5 tabular-money text-ink-900">{{ item.no_hp }}</dd>
+            </div>
+          </dl>
+          <div class="mt-4 flex gap-2">
+            <button
+              type="button"
+              (click)="openEdit(item)"
+              class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+            >
+              <app-icon name="Pencil" [size]="16" />
+              Ubah
+            </button>
+            <button
+              type="button"
+              (click)="confirmDelete(item)"
+              class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-control border border-red-700/20 bg-red-50 text-sm font-medium text-red-700 transition-colors hover:bg-red-700/10"
+            >
+              <app-icon name="Trash2" [size]="16" />
+              Hapus
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+}
+
+<app-modal
+  [open]="formOpen()"
+  [title]="editing() ? 'Ubah Data Siswa' : 'Tambah Siswa'"
+  [description]="
+    editing()
+      ? 'Perbarui data siswa lalu simpan perubahan.'
+      : 'Lengkapi data siswa, lalu simpan.'
+  "
+  size="lg"
+  (closed)="closeForm()"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4">
+    @if (formError()) {
+      <app-inline-alert tone="error" [message]="formError() ?? ''" />
+    }
+
+    <p class="text-xs text-ink-600">
+      Kolom bertanda <span class="text-red-700" aria-hidden="true">*</span> wajib
+      diisi.
+    </p>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-form-field
+        label="NISN"
+        fieldId="siswa-nisn"
+        [required]="true"
+        [error]="errorText(nisn, 'NISN harus terdiri dari 10 digit angka.')"
+      >
+        <input
+          id="siswa-nisn"
+          type="text"
+          formControlName="nisn"
+          inputmode="numeric"
+          autocomplete="off"
+          class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm tabular-money text-ink-900 focus:border-navy-900"
+          [attr.aria-required]="true"
+          [attr.aria-invalid]="nisn.invalid && (nisn.touched || nisn.dirty)"
+        />
+      </app-form-field>
+
+      <app-form-field
+        label="Nama Lengkap"
+        fieldId="siswa-nama"
+        [required]="true"
+        [error]="errorText(nama)"
+      >
+        <input
+          id="siswa-nama"
+          type="text"
+          formControlName="nama"
+          autocomplete="off"
+          class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+          [attr.aria-required]="true"
+          [attr.aria-invalid]="nama.invalid && (nama.touched || nama.dirty)"
+        />
+      </app-form-field>
+
+      <app-form-field
+        label="Jenis Kelamin"
+        fieldId="siswa-jenis-kelamin"
+        [required]="true"
+        [error]="errorText(jenisKelamin)"
+      >
+        <select
+          id="siswa-jenis-kelamin"
+          formControlName="jenisKelamin"
+          class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+          [attr.aria-required]="true"
+        >
+          <option value="L">Laki-laki</option>
+          <option value="P">Perempuan</option>
+        </select>
+      </app-form-field>
+
+      <app-form-field
+        label="Kelas"
+        fieldId="siswa-kelas"
+        [required]="true"
+        [error]="errorText(kelasId)"
+        [hint]="kelasList().length === 0 ? 'Belum ada kelas. Tambahkan kelas terlebih dahulu.' : null"
+      >
+        <select
+          id="siswa-kelas"
+          formControlName="kelasId"
+          class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+          [attr.aria-required]="true"
+          [attr.aria-invalid]="kelasId.invalid && (kelasId.touched || kelasId.dirty)"
+        >
+          <option [ngValue]="0" disabled>Pilih kelas</option>
+          @for (kelas of kelasList(); track kelas.id) {
+            <option [ngValue]="kelas.id">{{ kelasLabel(kelas) }}</option>
+          }
+        </select>
+      </app-form-field>
+    </div>
+
+    <app-form-field
+      label="Alamat"
+      fieldId="siswa-alamat"
+      [required]="true"
+      [error]="errorText(alamat)"
+    >
+      <textarea
+        id="siswa-alamat"
+        rows="3"
+        formControlName="alamat"
+        class="w-full rounded-control border border-line-300 bg-surface px-3 py-2.5 text-sm text-ink-900 focus:border-navy-900"
+        [attr.aria-required]="true"
+        [attr.aria-invalid]="alamat.invalid && (alamat.touched || alamat.dirty)"
+      ></textarea>
+    </app-form-field>
+
+    <app-form-field
+      label="Nomor HP"
+      fieldId="siswa-no-hp"
+      [required]="true"
+      [error]="errorText(noHp, 'Nomor HP tidak valid. Contoh: 081234567890.')"
+      hint="NISN akan menjadi nama pengguna dan kata sandi awal siswa."
+    >
+      <input
+        id="siswa-no-hp"
+        type="tel"
+        formControlName="noHp"
+        inputmode="tel"
+        autocomplete="off"
+        class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm tabular-money text-ink-900 focus:border-navy-900"
+        [attr.aria-required]="true"
+        [attr.aria-invalid]="noHp.invalid && (noHp.touched || noHp.dirty)"
+      />
+    </app-form-field>
+  </form>
+
+  <div modalFooter class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    <button
+      type="button"
+      (click)="closeForm()"
+      class="inline-flex h-11 items-center justify-center rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+    >
+      Batal
+    </button>
+    <button
+      type="button"
+      (click)="submit()"
+      [disabled]="submitting() || kelasList().length === 0"
+      class="inline-flex h-11 items-center justify-center rounded-control bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {{ submitting() ? 'Menyimpan...' : editing() ? 'Simpan Perubahan' : 'Simpan' }}
+    </button>
+  </div>
+</app-modal>
+
+<app-confirm-dialog
+  [open]="deleteTarget() !== null"
+  title="Hapus Data Siswa"
+  [message]="deleteMessage()"
+  confirmLabel="Hapus Siswa"
+  [busy]="deleting()"
+  (confirmed)="remove()"
+  (closed)="cancelDelete()"
+/>

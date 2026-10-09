@@ -1,0 +1,9 @@
+.student-nav-active {
+  background-color: var(--color-canvas);
+  color: var(--color-navy-900);
+}
+
+.student-tab-active {
+  color: var(--color-navy-900);
+  box-shadow: inset 0 2px 0 0 var(--color-green-600);
+}

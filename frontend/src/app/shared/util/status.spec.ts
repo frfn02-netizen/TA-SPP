@@ -1,5 +1,6 @@
 import {
   billStatusLabel,
+  billStatusTone,
   transactionStatusLabel,
   transactionStatusTone,
 } from './status';
@@ -22,5 +23,10 @@ describe('status mapping', () => {
     expect(transactionStatusTone('SETTLEMENT')).toBe('paid');
     expect(transactionStatusTone('PENDING')).toBe('neutral');
     expect(transactionStatusTone('DENY')).toBe('danger');
+  });
+
+  it('maps bill statuses to visual tones', () => {
+    expect(billStatusTone('LUNAS')).toBe('paid');
+    expect(billStatusTone('BELUM_LUNAS')).toBe('outstanding');
   });
 });

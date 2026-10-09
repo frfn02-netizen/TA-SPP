@@ -58,7 +58,7 @@ export class LoginPage {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: (user) => {
         this.submitting.set(false);
-        const target = user.role === 'ADMIN' ? '/admin/dashboard' : '/403';
+        const target = user.role === 'ADMIN' ? '/admin/dashboard' : '/siswa';
         void this.router.navigateByUrl(target);
       },
       error: (error: unknown) => {

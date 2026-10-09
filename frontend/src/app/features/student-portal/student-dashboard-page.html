@@ -1,0 +1,154 @@
+<app-page-header [title]="greeting()" [description]="description()">
+  <a
+    routerLink="/siswa/tagihan"
+    class="inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900"
+  >
+    <app-icon name="ReceiptText" [size]="16" />
+    Lihat Semua Tagihan
+  </a>
+</app-page-header>
+
+@if (loading()) {
+  <div class="mt-6" aria-hidden="true">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <div class="rounded-card border border-line-200 bg-surface p-5">
+          <div class="h-3 w-24 animate-pulse rounded bg-slate-50"></div>
+          <div class="mt-4 h-7 w-20 animate-pulse rounded bg-slate-50"></div>
+        </div>
+      }
+    </div>
+    <div class="mt-6 rounded-card border border-line-200 bg-surface p-5">
+      <div class="h-4 w-40 animate-pulse rounded bg-slate-50"></div>
+      <div class="mt-4 h-12 w-full animate-pulse rounded-control bg-slate-50"></div>
+    </div>
+    <p class="sr-only" role="status">Memuat data portal siswa.</p>
+  </div>
+} @else if (error()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="TriangleAlert"
+      title="Data tidak dapat dimuat"
+      [message]="error() ?? ''"
+      actionLabel="Muat ulang"
+      actionIcon="RefreshCw"
+      (action)="load()"
+    />
+  </div>
+} @else if (!hasAnyData()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="Inbox"
+      title="Belum ada tagihan"
+      message="Saat ini belum ada tagihan atau pembayaran yang tercatat untuk akun Anda. Tagihan akan muncul di sini setelah dibuat oleh administrator."
+    />
+  </div>
+} @else {
+  <section class="mt-6" aria-label="Ringkasan tagihan">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-stat-card
+        label="Tagihan Belum Lunas"
+        [value]="unpaid().length"
+        icon="Clock"
+        tone="attention"
+        hint="Perlu dibayar"
+      />
+      <app-stat-card
+        label="Total Belum Lunas"
+        [value]="unpaidTotal()"
+        icon="Banknote"
+        format="currency"
+        tone="attention"
+      />
+      <app-stat-card label="Tagihan Lunas" [value]="paidCount()" icon="CircleCheck" tone="pay" />
+      <app-stat-card label="Transaksi" [value]="transaksi().length" icon="CreditCard" />
+    </div>
+  </section>
+
+  <section class="mt-6 rounded-card border border-line-200 bg-surface">
+    <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-line-200 px-5 py-4">
+      <h2 class="text-base font-semibold text-ink-900">Tagihan Belum Lunas</h2>
+      <a routerLink="/siswa/tagihan" class="text-sm font-medium text-navy-900 hover:underline">
+        Lihat semua
+      </a>
+    </div>
+
+    @if (upcomingUnpaid().length === 0) {
+      <p class="px-5 py-6 text-sm text-ink-600">
+        Tidak ada tagihan yang belum lunas. Semua tagihan Anda sudah dibayar.
+      </p>
+    } @else {
+      <ul>
+        @for (item of upcomingUnpaid(); track item.id) {
+          <li class="flex flex-col gap-3 border-b border-line-200 px-5 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-medium text-ink-900">{{ periodLabel(item.bulan, item.tahun) }}</p>
+                <app-status-badge label="Belum Lunas" tone="outstanding" />
+              </div>
+              <p class="mt-0.5 text-xs text-ink-600">
+                @if (item.tahun_ajaran) {
+                  {{ item.tahun_ajaran }} · Semester {{ item.semester === 'GANJIL' ? 'Ganjil' : 'Genap' }}
+                } @else {
+                  Tagihan SPP
+                }
+                @if (item.jatuh_tempo) {
+                  · Jatuh tempo {{ formatDate(item.jatuh_tempo) }}
+                }
+              </p>
+            </div>
+            <div class="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
+              <span class="text-base font-semibold tabular-money text-ink-900">
+                {{ formatRupiah(item.nominal) }}
+              </span>
+              <a
+                [routerLink]="['/siswa/pembayaran', item.id]"
+                class="inline-flex h-11 items-center justify-center gap-2 rounded-control bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900"
+              >
+                <app-icon name="CreditCard" [size]="16" />
+                Bayar
+              </a>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="mt-6 rounded-card border border-line-200 bg-surface">
+    <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-line-200 px-5 py-4">
+      <h2 class="text-base font-semibold text-ink-900">Transaksi Terbaru</h2>
+      <a routerLink="/siswa/riwayat" class="text-sm font-medium text-navy-900 hover:underline">
+        Lihat riwayat
+      </a>
+    </div>
+
+    @if (recentTransactions().length === 0) {
+      <p class="px-5 py-6 text-sm text-ink-600">
+        Belum ada transaksi pembayaran yang tercatat.
+      </p>
+    } @else {
+      <ul>
+        @for (trx of recentTransactions(); track trx.id) {
+          <li class="flex flex-col gap-2 border-b border-line-200 px-5 py-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-medium tabular-money text-ink-900">{{ trx.order_id }}</p>
+                <app-status-badge
+                  [label]="transactionLabel(trx.transaction_status)"
+                  [tone]="transactionTone(trx.transaction_status)"
+                />
+              </div>
+              <p class="mt-0.5 text-xs text-ink-600">
+                {{ periodLabel(trx.bulan, trx.tahun) }} · {{ formatDateTime(trx.transaction_time ?? trx.created_at) }}
+              </p>
+            </div>
+            <span class="shrink-0 text-base font-semibold tabular-money text-ink-900">
+              {{ formatRupiah(trx.gross_amount) }}
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

@@ -1,0 +1,287 @@
+<app-page-header
+  title="Transaksi"
+  description="Riwayat transaksi pembayaran QRIS. Data ini bersifat hanya-baca."
+/>
+
+@if (loading()) {
+  <div class="mt-6">
+    <app-table-skeleton [rows]="6" />
+  </div>
+} @else if (error()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="TriangleAlert"
+      title="Data transaksi tidak dapat dimuat"
+      [message]="error() ?? ''"
+      actionLabel="Muat ulang"
+      actionIcon="RefreshCw"
+      (action)="load()"
+    />
+  </div>
+} @else {
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="relative w-full sm:max-w-xs">
+      <app-icon
+        name="Search"
+        [size]="16"
+        iconClass="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-600"
+      />
+      <input
+        type="search"
+        [value]="search()"
+        (input)="onSearch($event)"
+        placeholder="Cari Order ID atau nama siswa"
+        aria-label="Cari transaksi"
+        class="h-11 w-full rounded-control border border-line-300 bg-surface pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-600/60 focus:border-navy-900"
+      />
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="transaksi-status" class="text-[13px] font-medium text-ink-700">Status</label>
+      <select
+        id="transaksi-status"
+        [value]="statusFilter()"
+        (change)="onStatusFilter($event)"
+        class="h-11 rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+      >
+        <option value="ALL">Semua</option>
+        <option value="PENDING">Menunggu Pembayaran</option>
+        <option value="SETTLEMENT">Lunas</option>
+        <option value="EXPIRE">Kedaluwarsa</option>
+        <option value="CANCEL">Dibatalkan</option>
+      </select>
+    </div>
+  </div>
+
+  <p class="mt-3 text-xs text-ink-600">
+    Menampilkan {{ filtered().length }} dari {{ list().length }} transaksi
+  </p>
+
+  @if (list().length === 0) {
+    <div class="mt-4">
+      <app-state-panel
+        icon="Inbox"
+        title="Belum ada transaksi"
+        message="Transaksi akan muncul di sini setelah siswa melakukan pembayaran QRIS."
+      />
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="mt-4">
+      <app-state-panel
+        icon="Search"
+        title="Transaksi tidak ditemukan"
+        message="Tidak ada transaksi yang cocok dengan filter atau pencarian saat ini."
+        actionLabel="Reset filter"
+        (action)="clearFilters()"
+      />
+    </div>
+  } @else {
+    <div class="mt-4 hidden overflow-hidden rounded-card border border-line-200 bg-surface lg:block">
+      <table class="w-full border-collapse text-sm">
+        <thead>
+          <tr class="border-b border-line-200 text-left text-[13px] font-medium text-ink-600">
+            <th class="px-5 py-3">Order ID</th>
+            <th class="px-5 py-3">Siswa</th>
+            <th class="px-5 py-3">Periode</th>
+            <th class="px-5 py-3 text-right">Nominal</th>
+            <th class="px-5 py-3">Status</th>
+            <th class="px-5 py-3">Waktu</th>
+            <th class="px-5 py-3 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filtered(); track item.id) {
+            <tr class="border-b border-line-200 last:border-0">
+              <td class="px-5 py-3 tabular-money text-xs text-ink-700">{{ item.order_id }}</td>
+              <td class="px-5 py-3 text-ink-900">{{ item.nama ?? '-' }}</td>
+              <td class="px-5 py-3 text-ink-700">
+                @if (item.bulan) {
+                  {{ monthLabel(item.bulan) }} {{ item.tahun }}
+                } @else {
+                  -
+                }
+              </td>
+              <td class="px-5 py-3 text-right tabular-money text-ink-900">
+                {{ formatRupiah(item.gross_amount) }}
+              </td>
+              <td class="px-5 py-3">
+                <app-status-badge
+                  [label]="statusLabel(item.transaction_status)"
+                  [tone]="statusTone(item.transaction_status)"
+                />
+              </td>
+              <td class="px-5 py-3 text-ink-700">
+                {{ formatDateTime(item.transaction_time ?? item.created_at) }}
+              </td>
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-end">
+                  <button
+                    type="button"
+                    (click)="openDetail(item)"
+                    class="inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+                    [attr.aria-label]="'Lihat detail transaksi ' + item.order_id"
+                  >
+                    <app-icon name="Eye" [size]="16" />
+                    Detail
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="mt-4 flex flex-col gap-3 lg:hidden">
+      @for (item of filtered(); track item.id) {
+        <li class="rounded-card border border-line-200 bg-surface p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate font-semibold text-ink-900">{{ item.nama ?? '-' }}</p>
+              <p class="mt-0.5 truncate tabular-money text-xs text-ink-600">{{ item.order_id }}</p>
+            </div>
+            <app-status-badge
+              [label]="statusLabel(item.transaction_status)"
+              [tone]="statusTone(item.transaction_status)"
+            />
+          </div>
+
+          <dl class="mt-3 grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <dt class="text-ink-600">Periode</dt>
+              <dd class="mt-0.5 text-ink-900">
+                @if (item.bulan) {
+                  {{ monthLabel(item.bulan) }} {{ item.tahun }}
+                } @else {
+                  -
+                }
+              </dd>
+            </div>
+            <div>
+              <dt class="text-ink-600">Nominal</dt>
+              <dd class="mt-0.5 font-semibold tabular-money text-ink-900">
+                {{ formatRupiah(item.gross_amount) }}
+              </dd>
+            </div>
+            <div class="col-span-2">
+              <dt class="text-ink-600">Waktu</dt>
+              <dd class="mt-0.5 text-ink-900">
+                {{ formatDateTime(item.transaction_time ?? item.created_at) }}
+              </dd>
+            </div>
+          </dl>
+
+          <button
+            type="button"
+            (click)="openDetail(item)"
+            class="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-control border border-line-300 bg-surface text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+          >
+            <app-icon name="Eye" [size]="16" />
+            Lihat Detail
+          </button>
+        </li>
+      }
+    </ul>
+  }
+}
+
+<app-modal
+  [open]="detailOpen()"
+  title="Detail Transaksi"
+  size="lg"
+  (closed)="closeDetail()"
+>
+  @if (detailLoading()) {
+    <div aria-hidden="true">
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <div class="flex items-center justify-between border-b border-line-200 py-3 last:border-0">
+          <div class="h-3 w-32 animate-pulse rounded bg-slate-50"></div>
+          <div class="h-3 w-40 animate-pulse rounded bg-slate-50"></div>
+        </div>
+      }
+    </div>
+    <p class="sr-only" role="status">Memuat detail transaksi.</p>
+  } @else if (detailError()) {
+    <div class="space-y-3">
+      <app-inline-alert tone="error" [message]="detailError() ?? ''" />
+      <button
+        type="button"
+        (click)="retryDetail()"
+        class="inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+      >
+        <app-icon name="RefreshCw" [size]="16" />
+        Coba lagi
+      </button>
+    </div>
+  } @else if (detail(); as trx) {
+    <dl class="text-sm">
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Order ID</dt>
+        <dd class="break-all text-right tabular-money text-xs text-ink-900">{{ trx.order_id }}</dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Siswa</dt>
+        <dd class="text-right text-ink-900">{{ detailRow()?.nama ?? '-' }}</dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Periode Tagihan</dt>
+        <dd class="text-right text-ink-900">
+          @if (detailRow()?.bulan) {
+            {{ monthLabel(detailRow()?.bulan) }} {{ detailRow()?.tahun }}
+          } @else {
+            -
+          }
+        </dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Nominal</dt>
+        <dd class="text-right font-semibold tabular-money text-ink-900">
+          {{ formatRupiah(trx.gross_amount) }}
+        </dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Status</dt>
+        <dd class="text-right">
+          <app-status-badge
+            [label]="statusLabel(trx.transaction_status)"
+            [tone]="statusTone(trx.transaction_status)"
+          />
+        </dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Tipe Pembayaran</dt>
+        <dd class="text-right text-ink-900">{{ trx.payment_type ?? '-' }}</dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Waktu Transaksi</dt>
+        <dd class="text-right text-ink-900">{{ formatDateTime(trx.transaction_time) }}</dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Waktu Settlement</dt>
+        <dd class="text-right text-ink-900">{{ formatDateTime(trx.settlement_time) }}</dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Dibayar Pada</dt>
+        <dd class="text-right text-ink-900">{{ formatDateTime(trx.paid_at) }}</dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 border-b border-line-200 py-3">
+        <dt class="text-ink-600">Dibuat</dt>
+        <dd class="text-right text-ink-900">{{ formatDateTime(trx.created_at) }}</dd>
+      </div>
+      <div class="flex items-start justify-between gap-4 py-3">
+        <dt class="text-ink-600">Diperbarui</dt>
+        <dd class="text-right text-ink-900">{{ formatDateTime(trx.updated_at) }}</dd>
+      </div>
+    </dl>
+  }
+
+  <div modalFooter class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    <button
+      type="button"
+      (click)="closeDetail()"
+      class="inline-flex h-11 items-center justify-center rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+    >
+      Tutup
+    </button>
+  </div>
+</app-modal>

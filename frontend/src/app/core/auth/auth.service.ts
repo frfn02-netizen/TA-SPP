@@ -45,6 +45,7 @@ export class AuthService {
     () => this.tokenState() !== null && this.userState() !== null,
   );
   readonly isAdmin = computed(() => this.userState()?.role === 'ADMIN');
+  readonly isStudent = computed(() => this.userState()?.role === 'SISWA');
 
   get token(): string | null {
     return this.tokenState();

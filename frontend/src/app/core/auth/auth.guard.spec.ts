@@ -5,28 +5,33 @@ import { adminGuard } from './admin.guard';
 import { authGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { guestGuard } from './guest.guard';
+import { siswaGuard } from './siswa.guard';
 
 interface FakeAuth {
   isAuthenticated: () => boolean;
   isAdmin: () => boolean;
+  isStudent: () => boolean;
   user: () => AppUser | null;
 }
 
 const anonymous: FakeAuth = {
   isAuthenticated: () => false,
   isAdmin: () => false,
+  isStudent: () => false,
   user: () => null,
 };
 
 const admin: FakeAuth = {
   isAuthenticated: () => true,
   isAdmin: () => true,
+  isStudent: () => false,
   user: () => ({ id: 1, username: 'admin', role: 'ADMIN' }),
 };
 
 const student: FakeAuth = {
   isAuthenticated: () => true,
   isAdmin: () => false,
+  isStudent: () => true,
   user: () => ({ id: 2, username: '20260001', role: 'SISWA' }),
 };
 
@@ -62,12 +67,24 @@ describe('route guards', () => {
     expect(urlOf(runGuard(adminGuard, anonymous))).toBe('/login');
   });
 
+  it('siswaGuard allows an authenticated student', () => {
+    expect(runGuard(siswaGuard, student)).toBe(true);
+  });
+
+  it('siswaGuard sends an admin to /admin/dashboard', () => {
+    expect(urlOf(runGuard(siswaGuard, admin))).toBe('/admin/dashboard');
+  });
+
+  it('siswaGuard sends anonymous users to /login', () => {
+    expect(urlOf(runGuard(siswaGuard, anonymous))).toBe('/login');
+  });
+
   it('guestGuard sends an authenticated admin to the dashboard', () => {
     expect(urlOf(runGuard(guestGuard, admin))).toBe('/admin/dashboard');
   });
 
-  it('guestGuard sends an authenticated student to /403', () => {
-    expect(urlOf(runGuard(guestGuard, student))).toBe('/403');
+  it('guestGuard sends an authenticated student to the student portal', () => {
+    expect(urlOf(runGuard(guestGuard, student))).toBe('/siswa');
   });
 
   it('guestGuard allows anonymous users to see the login page', () => {

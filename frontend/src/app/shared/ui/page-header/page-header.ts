@@ -3,15 +3,20 @@ import { Component, input } from '@angular/core';
 @Component({
   selector: 'app-page-header',
   template: `
-    <div class="flex flex-col gap-1">
-      <h1 class="text-[26px] font-bold tracking-tight text-navy-900 sm:text-[30px]">
-        {{ title() }}
-      </h1>
-      @if (description()) {
-        <p class="max-w-2xl text-sm text-ink-600 sm:text-[15px]">
-          {{ description() }}
-        </p>
-      }
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-[26px] font-bold tracking-tight text-navy-900 sm:text-[30px]">
+          {{ title() }}
+        </h1>
+        @if (description()) {
+          <p class="max-w-2xl text-sm text-ink-600 sm:text-[15px]">
+            {{ description() }}
+          </p>
+        }
+      </div>
+      <div class="flex shrink-0 flex-wrap items-center gap-2 empty:hidden">
+        <ng-content />
+      </div>
     </div>
   `,
 })

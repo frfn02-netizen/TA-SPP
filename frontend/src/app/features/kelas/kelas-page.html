@@ -1,0 +1,231 @@
+<app-page-header
+  title="Kelas"
+  description="Daftar kelas yang digunakan untuk penempatan siswa dan tagihan."
+>
+  <button
+    type="button"
+    (click)="openCreate()"
+    class="inline-flex h-11 items-center justify-center gap-2 rounded-control bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900"
+  >
+    <app-icon name="Plus" [size]="16" />
+    Tambah Kelas
+  </button>
+</app-page-header>
+
+@if (success()) {
+  <div class="mt-4">
+    <app-inline-alert
+      tone="success"
+      [message]="success() ?? ''"
+      [dismissible]="true"
+      (dismissed)="dismissSuccess()"
+    />
+  </div>
+}
+
+@if (actionError()) {
+  <div class="mt-4">
+    <app-inline-alert
+      tone="error"
+      [message]="actionError() ?? ''"
+      [dismissible]="true"
+      (dismissed)="dismissActionError()"
+    />
+  </div>
+}
+
+@if (loading()) {
+  <div class="mt-6">
+    <app-table-skeleton [rows]="4" />
+  </div>
+} @else if (error()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="TriangleAlert"
+      title="Data kelas tidak dapat dimuat"
+      [message]="error() ?? ''"
+      actionLabel="Muat ulang"
+      actionIcon="RefreshCw"
+      (action)="load()"
+    />
+  </div>
+} @else {
+  <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="relative w-full sm:max-w-xs">
+      <app-icon
+        name="Search"
+        [size]="16"
+        iconClass="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-600"
+      />
+      <input
+        type="search"
+        [value]="search()"
+        (input)="onSearch($event)"
+        placeholder="Cari tingkat atau jurusan"
+        aria-label="Cari kelas"
+        class="h-11 w-full rounded-control border border-line-300 bg-surface pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-600/60 focus:border-navy-900"
+      />
+    </div>
+    <p class="text-xs text-ink-600">
+      Menampilkan {{ filtered().length }} dari {{ kelas().length }} kelas
+    </p>
+  </div>
+
+  @if (kelas().length === 0) {
+    <div class="mt-4">
+      <app-state-panel
+        icon="Inbox"
+        title="Belum ada data kelas"
+        message="Tambahkan kelas terlebih dahulu sebelum menambah siswa."
+        actionLabel="Tambah Kelas"
+        actionIcon="Plus"
+        (action)="openCreate()"
+      />
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="mt-4">
+      <app-state-panel
+        icon="Search"
+        title="Kelas tidak ditemukan"
+        message="Tidak ada kelas yang cocok dengan kata kunci pencarian."
+        actionLabel="Hapus pencarian"
+        (action)="clearSearch()"
+      />
+    </div>
+  } @else {
+    <div class="mt-4 hidden overflow-hidden rounded-card border border-line-200 bg-surface md:block">
+      <table class="w-full border-collapse text-sm">
+        <thead>
+          <tr class="border-b border-line-200 text-left text-[13px] font-medium text-ink-600">
+            <th class="px-5 py-3">Tingkat</th>
+            <th class="px-5 py-3">Jurusan</th>
+            <th class="px-5 py-3 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filtered(); track item.id) {
+            <tr class="border-b border-line-200 last:border-0">
+              <td class="px-5 py-3 font-medium text-ink-900">{{ item.tingkat }}</td>
+              <td class="px-5 py-3 text-ink-700">{{ item.jurusan }}</td>
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="openEdit(item)"
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-control border border-line-300 bg-surface text-ink-700 transition-colors hover:bg-slate-50"
+                    [attr.aria-label]="'Ubah kelas ' + item.tingkat + ' ' + item.jurusan"
+                  >
+                    <app-icon name="Pencil" [size]="16" />
+                  </button>
+                  <button
+                    type="button"
+                    (click)="confirmDelete(item)"
+                    class="inline-flex h-11 w-11 items-center justify-center rounded-control border border-red-700/20 bg-red-50 text-red-700 transition-colors hover:bg-red-700/10"
+                    [attr.aria-label]="'Hapus kelas ' + item.tingkat + ' ' + item.jurusan"
+                  >
+                    <app-icon name="Trash2" [size]="16" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="mt-4 flex flex-col gap-3 md:hidden">
+      @for (item of filtered(); track item.id) {
+        <li class="rounded-card border border-line-200 bg-surface p-4">
+          <p class="font-semibold text-ink-900">{{ item.tingkat }} {{ item.jurusan }}</p>
+          <p class="mt-1 text-xs text-ink-600">Tingkat {{ item.tingkat }}</p>
+          <div class="mt-4 flex gap-2">
+            <button
+              type="button"
+              (click)="openEdit(item)"
+              class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+            >
+              <app-icon name="Pencil" [size]="16" />
+              Ubah
+            </button>
+            <button
+              type="button"
+              (click)="confirmDelete(item)"
+              class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-control border border-red-700/20 bg-red-50 text-sm font-medium text-red-700 transition-colors hover:bg-red-700/10"
+            >
+              <app-icon name="Trash2" [size]="16" />
+              Hapus
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+}
+
+<app-modal
+  [open]="formOpen()"
+  [title]="editing() ? 'Ubah Kelas' : 'Tambah Kelas'"
+  (closed)="closeForm()"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4">
+    @if (formError()) {
+      <app-inline-alert tone="error" [message]="formError() ?? ''" />
+    }
+
+    <app-form-field label="Tingkat" fieldId="kelas-tingkat" [error]="errorText(tingkat)">
+      <select
+        id="kelas-tingkat"
+        formControlName="tingkat"
+        class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+      >
+        <option value="X">X</option>
+        <option value="XI">XI</option>
+        <option value="XII">XII</option>
+      </select>
+    </app-form-field>
+
+    <app-form-field
+      label="Jurusan"
+      fieldId="kelas-jurusan"
+      [error]="errorText(jurusan)"
+      hint="Contoh: RPL, TKJ, AKL."
+    >
+      <input
+        id="kelas-jurusan"
+        type="text"
+        formControlName="jurusan"
+        autocomplete="off"
+        class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+        [attr.aria-invalid]="jurusan.invalid && (jurusan.touched || jurusan.dirty)"
+      />
+    </app-form-field>
+  </form>
+
+  <div modalFooter class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    <button
+      type="button"
+      (click)="closeForm()"
+      class="inline-flex h-11 items-center justify-center rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+    >
+      Batal
+    </button>
+    <button
+      type="button"
+      (click)="submit()"
+      [disabled]="submitting()"
+      class="inline-flex h-11 items-center justify-center rounded-control bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {{ submitting() ? 'Menyimpan...' : editing() ? 'Simpan Perubahan' : 'Simpan' }}
+    </button>
+  </div>
+</app-modal>
+
+<app-confirm-dialog
+  [open]="deleteTarget() !== null"
+  title="Hapus Kelas"
+  [message]="deleteMessage()"
+  confirmLabel="Hapus Kelas"
+  [busy]="deleting()"
+  (confirmed)="remove()"
+  (closed)="cancelDelete()"
+/>

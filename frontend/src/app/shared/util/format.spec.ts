@@ -1,4 +1,10 @@
-import { formatNumber, formatRupiah } from './format';
+import {
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatRupiah,
+  formatRupiahFrom,
+} from './format';
 
 describe('format', () => {
   it('formats numbers with Indonesian thousand separators', () => {
@@ -17,5 +23,19 @@ describe('format', () => {
     const value = formatRupiah(52400000);
     expect(value).toBe('Rp 52.400.000');
     expect(value).not.toContain('K');
+  });
+
+  it('formats numeric strings returned by the API as rupiah', () => {
+    expect(formatRupiahFrom('150000.00')).toBe('Rp 150.000');
+    expect(formatRupiahFrom(250000)).toBe('Rp 250.000');
+    expect(formatRupiahFrom(null)).toBe('Rp 0');
+    expect(formatRupiahFrom(undefined)).toBe('Rp 0');
+  });
+
+  it('formats dates and datetimes in Indonesian format', () => {
+    expect(formatDate('2025-09-10')).toBe('10 Sep 2025');
+    expect(formatDate(null)).toBe('-');
+    expect(formatDate('bukan-tanggal')).toBe('-');
+    expect(formatDateTime('2025-09-10T08:00:00.000Z')).toContain('10 Sep 2025');
   });
 });

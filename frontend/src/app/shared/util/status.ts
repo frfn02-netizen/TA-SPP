@@ -30,8 +30,17 @@ const transactionTones: Record<TransactionStatus, StatusTone> = {
   DENY: 'danger',
 };
 
+const billTones: Record<BillStatus, StatusTone> = {
+  BELUM_LUNAS: 'outstanding',
+  LUNAS: 'paid',
+};
+
 export function billStatusLabel(status: BillStatus): string {
   return billLabels[status];
+}
+
+export function billStatusTone(status: BillStatus): StatusTone {
+  return billTones[status];
 }
 
 export function transactionStatusLabel(status: TransactionStatus): string {

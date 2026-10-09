@@ -9,6 +9,7 @@ import { filter, map, startWith } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { AdminSidebar } from './admin-sidebar';
 import { AdminTopbar } from './admin-topbar';
+import { adminPageTitle } from './admin-nav';
 
 @Component({
   selector: 'app-admin-layout',
@@ -36,8 +37,8 @@ export class AdminLayout {
   readonly pageTitle = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.resolveTitle(this.router.url)),
-      startWith(this.resolveTitle(this.router.url)),
+      map(() => adminPageTitle(this.router.url)),
+      startWith(adminPageTitle(this.router.url)),
     ),
     { initialValue: 'Dashboard' },
   );
@@ -57,12 +58,5 @@ export class AdminLayout {
 
   logout(): void {
     this.auth.logout();
-  }
-
-  private resolveTitle(url: string): string {
-    if (url.includes('/admin/dashboard')) {
-      return 'Dashboard';
-    }
-    return 'Administrasi';
   }
 }

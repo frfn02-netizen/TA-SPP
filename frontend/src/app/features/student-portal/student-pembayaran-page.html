@@ -1,0 +1,152 @@
+<div class="mb-4">
+  <a
+    routerLink="/siswa/tagihan"
+    class="inline-flex h-11 items-center gap-2 rounded-control text-sm font-medium text-ink-700 transition-colors hover:text-navy-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900"
+  >
+    <app-icon name="ArrowLeft" [size]="16" />
+    Kembali ke Tagihan
+  </a>
+</div>
+
+<app-page-header
+  title="Pembayaran SPP"
+  description="Periksa detail tagihan, lalu lanjutkan ke halaman pembayaran QRIS Midtrans."
+/>
+
+@if (loading()) {
+  <div class="mt-6 rounded-card border border-line-200 bg-surface p-5" aria-hidden="true">
+    <div class="h-4 w-40 animate-pulse rounded bg-slate-50"></div>
+    <div class="mt-4 h-8 w-40 animate-pulse rounded bg-slate-50"></div>
+    <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="h-12 animate-pulse rounded-control bg-slate-50"></div>
+      <div class="h-12 animate-pulse rounded-control bg-slate-50"></div>
+    </div>
+    <p class="sr-only" role="status">Memuat detail tagihan.</p>
+  </div>
+} @else if (error()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="TriangleAlert"
+      title="Tagihan tidak dapat dimuat"
+      [message]="error() ?? ''"
+      actionLabel="Muat ulang"
+      actionIcon="RefreshCw"
+      (action)="load()"
+    />
+  </div>
+} @else if (tagihan(); as bill) {
+  <section class="mt-6 rounded-card border border-line-200 bg-surface p-5 sm:p-6">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-semibold text-ink-900">
+          {{ periodLabel(bill.bulan, bill.tahun) }}
+        </h2>
+        <p class="mt-1 text-sm text-ink-600">
+          @if (bill.tahun_ajaran) {
+            {{ bill.tahun_ajaran }} · Semester
+            {{ bill.semester === 'GANJIL' ? 'Ganjil' : 'Genap' }}
+          } @else {
+            Tagihan SPP
+          }
+        </p>
+      </div>
+      <app-status-badge
+        [label]="statusLabel(bill.status)"
+        [tone]="statusTone(bill.status)"
+      />
+    </div>
+
+    <dl class="mt-5 grid grid-cols-1 gap-4 border-t border-line-200 pt-5 sm:grid-cols-2">
+      <div>
+        <dt class="text-[13px] font-medium text-ink-600">Nominal</dt>
+        <dd class="mt-1 text-2xl font-bold tabular-money text-ink-900">
+          {{ formatRupiah(bill.nominal) }}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-[13px] font-medium text-ink-600">Jatuh Tempo</dt>
+        <dd class="mt-1 text-base text-ink-900">
+          @if (bill.jatuh_tempo) {
+            {{ formatDate(bill.jatuh_tempo) }}
+          } @else {
+            -
+          }
+        </dd>
+      </div>
+      @if (bill.keterangan) {
+        <div class="sm:col-span-2">
+          <dt class="text-[13px] font-medium text-ink-600">Keterangan</dt>
+          <dd class="mt-1 text-base text-ink-900">{{ bill.keterangan }}</dd>
+        </div>
+      }
+    </dl>
+  </section>
+
+  @if (payError()) {
+    <div class="mt-4">
+      <app-inline-alert tone="error" [message]="payError() ?? ''" />
+    </div>
+  }
+
+  @if (notice()) {
+    <div class="mt-4">
+      <app-inline-alert
+        [tone]="isPayable() ? 'info' : 'success'"
+        [message]="notice() ?? ''"
+      />
+    </div>
+  }
+
+  @if (isPayable()) {
+    <section class="mt-6 rounded-card border border-line-200 bg-surface p-5 sm:p-6">
+      <h2 class="text-base font-semibold text-ink-900">Lanjutkan Pembayaran</h2>
+      <p class="mt-1 text-sm text-ink-600">
+        Anda akan diarahkan ke halaman pembayaran QRIS Midtrans. Setelah
+        menyelesaikan pembayaran, kembali ke halaman ini dan periksa status
+        tagihan. Status lunas ditetapkan oleh sistem setelah pembayaran
+        dikonfirmasi, bukan langsung saat Anda kembali.
+      </p>
+
+      <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          (click)="continuePayment()"
+          [disabled]="submitting()"
+          class="inline-flex h-11 items-center justify-center gap-2 rounded-control bg-navy-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <app-icon name="CreditCard" [size]="16" />
+          {{ submitting() ? 'Menyiapkan pembayaran...' : 'Lanjutkan Pembayaran' }}
+        </button>
+        <button
+          type="button"
+          (click)="checkStatus()"
+          class="inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface px-5 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+        >
+          <app-icon name="RefreshCw" [size]="16" />
+          Periksa Status
+        </button>
+      </div>
+    </section>
+  } @else {
+    <section class="mt-6 rounded-card border border-green-700/20 bg-green-50 p-5 sm:p-6">
+      <div class="flex items-start gap-3">
+        <app-icon name="CircleCheck" [size]="22" iconClass="mt-0.5 text-green-700" />
+        <div>
+          <h2 class="text-base font-semibold text-green-700">Tagihan sudah lunas</h2>
+          <p class="mt-1 text-sm text-ink-700">
+            Tagihan periode {{ periodLabel(bill.bulan, bill.tahun) }} sudah
+            dibayar. Tidak ada tindakan pembayaran yang diperlukan.
+          </p>
+          <button
+            type="button"
+            (click)="checkStatus()"
+            class="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50"
+          >
+            <app-icon name="RefreshCw" [size]="16" />
+            Periksa Status
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+}
