@@ -8,8 +8,8 @@ backend API dan frontend Angular dalam satu repository.
 ```
 .
 ├── backend/     # REST API (Express + MySQL), integrasi Midtrans QRIS
-├── frontend/    # Aplikasi admin (Angular)
-├── DESIGN.md    # Arah desain produk
+├── frontend/    # Aplikasi Angular (admin + portal siswa)
+├── .gitignore
 └── README.md
 ```
 

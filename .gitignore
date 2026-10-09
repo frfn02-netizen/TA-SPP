@@ -38,3 +38,10 @@ __screenshots__/
 .sublime-workspace
 .DS_Store
 Thumbs.db
+
+# Local agent / design configuration (kept on disk, not published)
+.agents/
+.opencode/
+DESIGN.md
+opencode.json
+skills-lock.json
