@@ -1,5 +1,6 @@
 const tagihanService = require("./tagihan.service");
 const response = require("../../utils/response");
+const { bulkPreviewSchema } = require("./tagihan.validation");
 
 const getAll = async (req, res, next) => {
     try {
@@ -73,10 +74,47 @@ const remove = async (req, res, next) => {
     }
 };
 
+const bulkPreview = async (req, res, next) => {
+    try {
+
+        const input = bulkPreviewSchema.parse(
+            req.query
+        );
+
+        const result =
+            await tagihanService.bulkPreview(input);
+
+        response.success(res, result);
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+const bulkGenerate = async (req, res, next) => {
+    try {
+
+        const result =
+            await tagihanService.bulkGenerate(req.body);
+
+        response.success(
+            res,
+            result,
+            "Tagihan massal berhasil diproses",
+            201
+        );
+
+    } catch (err) {
+        next(err);
+    }
+};
+
 module.exports = {
     getAll,
     getById,
     create,
     update,
     remove,
+    bulkPreview,
+    bulkGenerate,
 };

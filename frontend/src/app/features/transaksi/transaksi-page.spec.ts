@@ -1,6 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { LUCIDE_ICONS, LucideIconProvider } from 'lucide-angular';
 import { Observable, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
@@ -9,7 +8,7 @@ import { ReceiptService } from '../../core/receipt/receipt.service';
 import { Transaksi } from '../../core/transaksi/transaksi.model';
 import { TransaksiService } from '../../core/transaksi/transaksi.service';
 import { APP_ICONS } from '../../shared/ui/app-icon/app-icon';
-import { StudentRiwayatPage } from './student-riwayat-page';
+import { TransaksiPage } from './transaksi-page';
 
 const settled: Transaksi = {
   id: 1,
@@ -26,9 +25,9 @@ const settled: Transaksi = {
   midtrans_response: null,
   created_at: '2025-09-10T08:00:00.000Z',
   updated_at: '2025-09-10T08:00:00.000Z',
+  nama: 'Budi Santoso',
   bulan: 9,
   tahun: 2025,
-  status: 'LUNAS',
 };
 
 const pending: Transaksi = {
@@ -36,11 +35,11 @@ const pending: Transaksi = {
   id: 2,
   order_id: 'SPP-20250910-PENDING',
   transaction_status: 'PENDING',
-  status: 'BELUM_LUNAS',
+  nama: 'Andi',
 };
 
 interface Setup {
-  fixture: ComponentFixture<StudentRiwayatPage>;
+  fixture: ComponentFixture<TransaksiPage>;
   generateIds: number[];
   download: ReturnType<typeof vi.fn>;
 }
@@ -57,9 +56,8 @@ function setup(
   const download = vi.fn();
 
   TestBed.configureTestingModule({
-    imports: [StudentRiwayatPage],
+    imports: [TransaksiPage],
     providers: [
-      provideRouter([]),
       {
         provide: TransaksiService,
         useValue: { getList, getById: () => of(settled) },
@@ -82,42 +80,37 @@ function setup(
     ],
   });
 
-  return { fixture: TestBed.createComponent(StudentRiwayatPage), generateIds, download };
+  return { fixture: TestBed.createComponent(TransaksiPage), generateIds, download };
 }
 
-function textOf(fixture: ComponentFixture<StudentRiwayatPage>): string {
+function textOf(fixture: ComponentFixture<TransaksiPage>): string {
   return (fixture.nativeElement as HTMLElement).textContent ?? '';
 }
 
-describe('StudentRiwayatPage', () => {
-  it('renders the student transactions', () => {
+describe('TransaksiPage', () => {
+  it('renders transactions guarded by role data', () => {
     const { fixture } = setup(() => of([settled]));
     fixture.detectChanges();
 
     const text = textOf(fixture);
     expect(text).toContain('SPP-20250910-ABCDEF');
-    expect(text).toContain('Rp 150.000');
-    expect(text).toContain('Lunas');
+    expect(text).toContain('Budi Santoso');
   });
 
-  it('shows the receipt action only for SETTLEMENT transactions', () => {
+  it('exposes the receipt action only for SETTLEMENT transactions', () => {
     const { fixture } = setup(() => of([settled, pending]));
     fixture.detectChanges();
 
-    expect(textOf(fixture)).toContain('Struk PDF');
-
-    const button = (fixture.nativeElement as HTMLElement).querySelector(
-      '[aria-label="Unduh struk PDF untuk SPP-20250910-ABCDEF"]',
-    );
-    expect(button).not.toBeNull();
-
-    const pendingButton = (fixture.nativeElement as HTMLElement).querySelector(
-      '[aria-label="Unduh struk PDF untuk SPP-20250910-PENDING"]',
-    );
-    expect(pendingButton).toBeNull();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(
+      host.querySelector('[aria-label="Unduh struk PDF untuk SPP-20250910-ABCDEF"]'),
+    ).not.toBeNull();
+    expect(
+      host.querySelector('[aria-label="Unduh struk PDF untuk SPP-20250910-PENDING"]'),
+    ).toBeNull();
   });
 
-  it('generates and downloads the receipt, then shows success feedback', () => {
+  it('uses the shared receipt service to generate and download the PDF', () => {
     const { fixture, generateIds, download } = setup(() => of([settled]));
     fixture.detectChanges();
 
@@ -129,59 +122,39 @@ describe('StudentRiwayatPage', () => {
     expect(textOf(fixture)).toContain('Struk PDF berhasil dibuat');
   });
 
-  it('shows a clear message when the receipt is ineligible', () => {
-    const { fixture, download } = setup(() => of([settled]), {
+  it('shows a message when the receipt is ineligible', () => {
+    const { fixture } = setup(() => of([settled]), {
       status: 'ineligible',
-      reason: 'Transaksi masih menunggu pembayaran. Struk hanya tersedia setelah pembayaran dikonfirmasi.',
+      reason: 'Status transaksi sudah lunas, tetapi status tagihan belum LUNAS.',
     });
     fixture.detectChanges();
 
     fixture.componentInstance.downloadReceipt(settled);
     fixture.detectChanges();
 
-    expect(download).not.toHaveBeenCalled();
-    expect(textOf(fixture)).toContain('menunggu pembayaran');
+    expect(textOf(fixture)).toContain('belum LUNAS');
   });
 
-  it('shows an error message when fetching the receipt fails', () => {
+  it('shows an error message when the receipt fetch fails', () => {
     const { fixture } = setup(() => of([settled]), {
       status: 'error',
-      message: 'Transaksi atau tagihan terkait tidak ditemukan.',
+      message: 'Anda tidak memiliki akses ke transaksi ini.',
     });
     fixture.detectChanges();
 
     fixture.componentInstance.downloadReceipt(settled);
     fixture.detectChanges();
 
-    expect(textOf(fixture)).toContain('tidak ditemukan');
+    expect(textOf(fixture)).toContain('tidak memiliki akses');
   });
 
-  it('shows an empty state without transactions', () => {
-    const { fixture } = setup(() => of([]));
-    fixture.detectChanges();
-
-    expect(textOf(fixture)).toContain('Belum ada transaksi');
-  });
-
-  it('shows an error state with retry', () => {
+  it('keeps the existing list error state', () => {
     const error = new HttpErrorResponse({ status: 500 });
     const { fixture } = setup(() => throwError(() => error));
     fixture.detectChanges();
 
     const text = textOf(fixture);
-    expect(text).toContain('Riwayat pembayaran tidak dapat dimuat');
+    expect(text).toContain('Data transaksi tidak dapat dimuat');
     expect(text).toContain('Muat ulang');
-  });
-
-  it('opens a transaction detail', () => {
-    const { fixture } = setup(() => of([settled]));
-    fixture.detectChanges();
-
-    fixture.componentInstance.openDetail(settled);
-    fixture.detectChanges();
-
-    const text = textOf(fixture);
-    expect(text).toContain('Detail Transaksi');
-    expect(text).toContain('Status Tagihan');
   });
 });

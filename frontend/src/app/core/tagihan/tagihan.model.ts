@@ -30,3 +30,57 @@ export interface TagihanPayload {
   jatuhTempo: string;
   keterangan?: string;
 }
+
+export type BulkTargetScope = 'ALL' | 'KELAS';
+
+export interface BulkPeriode {
+  bulan: number;
+  tahun: number;
+}
+
+export interface BulkTahunAjaranSummary {
+  id: number;
+  nama: string;
+  semester: string;
+}
+
+export interface BulkTargetSummary {
+  scope: BulkTargetScope;
+  kelasId: number | null;
+}
+
+export interface BulkPreviewRequest {
+  tahunAjaranId: number;
+  bulan: number;
+  tahun: number;
+  nominal: number;
+  kelasId: number | null;
+}
+
+export interface BulkGenerateRequest extends BulkPreviewRequest {
+  jatuhTempo: string;
+  keterangan?: string;
+}
+
+export interface BulkPreviewResult {
+  periode: BulkPeriode;
+  tahunAjaran: BulkTahunAjaranSummary;
+  target: BulkTargetSummary;
+  nominal: number;
+  totalTarget: number;
+  willCreate: number;
+  skipped: number;
+  totalNominal: number;
+}
+
+export interface BulkGenerateResult {
+  periode: BulkPeriode;
+  tahunAjaran: BulkTahunAjaranSummary;
+  target: BulkTargetSummary;
+  nominal: number;
+  totalTarget: number;
+  created: number;
+  skipped: number;
+  failed: number;
+  totalNominal: number;
+}

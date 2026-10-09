@@ -1,5 +1,6 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import {
   AbstractControl,
   NonNullableFormBuilder,
@@ -51,6 +52,7 @@ const MONTHS = [
   selector: 'app-tagihan-page',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     PageHeader,
     TableSkeleton,
     StatePanel,

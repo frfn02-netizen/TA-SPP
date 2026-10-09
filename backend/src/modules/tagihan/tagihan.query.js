@@ -309,6 +309,103 @@ const getByIdAndUserId = async (id, userId) => {
 
 };
 
+const getTargetSiswa = async (kelasId) => {
+
+    const params = [];
+    let where = "";
+
+    if (kelasId) {
+        where = "WHERE s.kelas_id = ?";
+        params.push(kelasId);
+    }
+
+    const [rows] = await db.execute(
+        `
+        SELECT
+            s.id,
+            s.nisn,
+            s.nama,
+            s.kelas_id,
+            k.tingkat,
+            k.jurusan
+
+        FROM siswa s
+
+        JOIN kelas k
+            ON k.id = s.kelas_id
+
+        ${where}
+
+        ORDER BY
+            k.tingkat,
+            k.jurusan,
+            s.nama
+        `,
+        params
+    );
+
+    return rows;
+
+};
+
+const getSiswaIdsByPeriod = async (
+    tahunAjaranId,
+    bulan,
+    tahun
+) => {
+
+    const [rows] = await db.execute(
+        `
+        SELECT siswa_id
+        FROM tagihan
+        WHERE
+            tahun_ajaran_id = ?
+            AND bulan = ?
+            AND tahun = ?
+        `,
+        [
+            tahunAjaranId,
+            bulan,
+            tahun,
+        ]
+    );
+
+    return rows.map((row) => row.siswa_id);
+
+};
+
+const kelasExists = async (id) => {
+
+    const [rows] = await db.execute(
+        `
+        SELECT id
+        FROM kelas
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [id]
+    );
+
+    return rows[0];
+
+};
+
+const getTahunAjaranById = async (id) => {
+
+    const [rows] = await db.execute(
+        `
+        SELECT id, nama, semester
+        FROM tahun_ajaran
+        WHERE id = ?
+        LIMIT 1
+        `,
+        [id]
+    );
+
+    return rows[0];
+
+};
+
 module.exports = {
     getAll,
     getByUserId,
@@ -320,5 +417,9 @@ module.exports = {
     update,
     updateStatus,
     remove,
-    getByIdAndUserId
+    getByIdAndUserId,
+    getTargetSiswa,
+    getSiswaIdsByPeriod,
+    kelasExists,
+    getTahunAjaranById,
 };

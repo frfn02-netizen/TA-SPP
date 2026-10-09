@@ -9,6 +9,7 @@ const tagihanController = require("./tagihan.controller");
 const {
     createTagihanSchema,
     updateTagihanSchema,
+    bulkGenerateSchema,
 } = require("./tagihan.validation");
 
 router.use(authMiddleware);
@@ -22,6 +23,16 @@ router.use(authMiddleware);
 router.get(
     "/",
     tagihanController.getAll
+);
+
+/*
+| Bulk preview harus terdaftar sebelum "/:id"
+| agar tidak tertangkap sebagai parameter id.
+*/
+router.get(
+    "/bulk-preview",
+    roleMiddleware("ADMIN"),
+    tagihanController.bulkPreview
 );
 
 router.get(
@@ -40,6 +51,13 @@ router.post(
     roleMiddleware("ADMIN"),
     validate(createTagihanSchema),
     tagihanController.create
+);
+
+router.post(
+    "/bulk-generate",
+    roleMiddleware("ADMIN"),
+    validate(bulkGenerateSchema),
+    tagihanController.bulkGenerate
 );
 
 router.put(

@@ -1,0 +1,313 @@
+<app-page-header
+  title="Generate Tagihan Massal"
+  description="Buat tagihan SPP untuk banyak siswa sekaligus berdasarkan periode, tahun ajaran, dan target kelas."
+/>
+
+@if (refLoading()) {
+  <div class="mt-6 rounded-card border border-line-200 bg-surface p-6" aria-hidden="true">
+    <div class="h-4 w-40 animate-pulse rounded bg-slate-50"></div>
+    <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <div class="h-12 animate-pulse rounded-control bg-slate-50"></div>
+      }
+    </div>
+    <p class="sr-only" role="status">Memuat data kelas dan tahun ajaran.</p>
+  </div>
+} @else if (refError()) {
+  <div class="mt-6">
+    <app-state-panel
+      icon="TriangleAlert"
+      title="Data pendukung tidak dapat dimuat"
+      [message]="refError() ?? ''"
+      actionLabel="Muat ulang"
+      actionIcon="RefreshCw"
+      (action)="loadReference()"
+    />
+  </div>
+} @else {
+  <ol class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Langkah generate tagihan massal">
+    <li class="flex items-center gap-2 text-sm">
+      <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold"
+        [class]="step() === 'config' ? 'bg-navy-900 text-white' : 'bg-slate-50 text-ink-600'">1</span>
+      <span [class]="step() === 'config' ? 'font-medium text-ink-900' : 'text-ink-600'">Konfigurasi</span>
+    </li>
+    <li class="flex items-center gap-2 text-sm">
+      <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold"
+        [class]="step() === 'preview' ? 'bg-navy-900 text-white' : 'bg-slate-50 text-ink-600'">2</span>
+      <span [class]="step() === 'preview' ? 'font-medium text-ink-900' : 'text-ink-600'">Preview</span>
+    </li>
+    <li class="flex items-center gap-2 text-sm">
+      <span class="flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold"
+        [class]="step() === 'result' ? 'bg-navy-900 text-white' : 'bg-slate-50 text-ink-600'">3</span>
+      <span [class]="step() === 'result' ? 'font-medium text-ink-900' : 'text-ink-600'">Hasil</span>
+    </li>
+  </ol>
+
+  @if (actionError()) {
+    <div class="mt-4">
+      <app-inline-alert
+        tone="error"
+        [message]="actionError() ?? ''"
+        [dismissible]="true"
+        (dismissed)="dismissActionError()"
+      />
+    </div>
+  }
+
+  @if (step() === 'config') {
+    <section class="mt-4 rounded-card border border-line-200 bg-surface p-5 sm:p-6">
+      <form [formGroup]="form" (ngSubmit)="submitPreview()" novalidate class="space-y-4">
+        <p class="text-xs text-ink-600">
+          Kolom bertanda <span class="text-red-700" aria-hidden="true">*</span> wajib diisi.
+        </p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <app-form-field label="Bulan Tagihan" fieldId="massal-bulan" [required]="true" [error]="errorText(bulan)">
+            <select id="massal-bulan" formControlName="bulan"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900">
+              @for (month of months; track month.value) {
+                <option [ngValue]="month.value">{{ month.label }}</option>
+              }
+            </select>
+          </app-form-field>
+
+          <app-form-field
+            label="Tahun Tagihan"
+            fieldId="massal-tahun"
+            [required]="true"
+            [error]="errorText(tahun, { min: 'Tahun minimal 2000.', max: 'Tahun maksimal 2100.' })"
+          >
+            <input id="massal-tahun" type="number" formControlName="tahun" inputmode="numeric"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm tabular-money text-ink-900 focus:border-navy-900"
+              [attr.aria-invalid]="tahun.invalid && (tahun.touched || tahun.dirty)" />
+          </app-form-field>
+
+          <app-form-field
+            label="Tahun Ajaran"
+            fieldId="massal-tahun-ajaran"
+            [required]="true"
+            [error]="errorText(tahunAjaranId)"
+            [hint]="tahunAjaranList().length === 0 ? 'Belum ada tahun ajaran.' : null"
+          >
+            <select id="massal-tahun-ajaran" formControlName="tahunAjaranId"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+              [attr.aria-invalid]="tahunAjaranId.invalid && (tahunAjaranId.touched || tahunAjaranId.dirty)">
+              <option [ngValue]="0" disabled>Pilih tahun ajaran</option>
+              @for (item of tahunAjaranList(); track item.id) {
+                <option [ngValue]="item.id">{{ item.nama }} - {{ semesterLabel(item) }}</option>
+              }
+            </select>
+          </app-form-field>
+
+          <app-form-field
+            label="Nominal per Tagihan"
+            fieldId="massal-nominal"
+            [required]="true"
+            [error]="errorText(nominal, { min: 'Nominal harus lebih dari 0.' })"
+            hint="Nominal ini berlaku sama untuk seluruh siswa pada target yang dipilih."
+          >
+            <input id="massal-nominal" type="number" formControlName="nominal" inputmode="numeric"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm tabular-money text-ink-900 focus:border-navy-900"
+              [attr.aria-invalid]="nominal.invalid && (nominal.touched || nominal.dirty)" />
+          </app-form-field>
+        </div>
+
+        <fieldset>
+          <legend class="mb-1.5 block text-[13px] font-medium text-ink-700">
+            Target Siswa <span class="text-red-700" aria-hidden="true">*</span>
+          </legend>
+          <div class="flex flex-wrap gap-2">
+            <label
+              class="inline-flex h-11 cursor-pointer items-center rounded-control border px-4 text-sm font-medium transition-colors"
+              [class]="!isScoped ? 'border-navy-900 bg-navy-900 text-white' : 'border-line-300 bg-surface text-ink-700 hover:bg-slate-50'"
+            >
+              <input class="sr-only" type="radio" formControlName="scope" value="ALL" />
+              Semua siswa
+            </label>
+            <label
+              class="inline-flex h-11 cursor-pointer items-center rounded-control border px-4 text-sm font-medium transition-colors"
+              [class]="isScoped ? 'border-navy-900 bg-navy-900 text-white' : 'border-line-300 bg-surface text-ink-700 hover:bg-slate-50'"
+            >
+              <input class="sr-only" type="radio" formControlName="scope" value="KELAS" />
+              Kelas tertentu
+            </label>
+          </div>
+        </fieldset>
+
+        @if (isScoped) {
+          <app-form-field
+            label="Kelas Target"
+            fieldId="massal-kelas"
+            [required]="true"
+            [error]="errorText(kelasId)"
+            [hint]="kelasList().length === 0 ? 'Belum ada kelas.' : null"
+          >
+            <select id="massal-kelas" formControlName="kelasId"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+              [attr.aria-invalid]="kelasId.invalid && (kelasId.touched || kelasId.dirty)">
+              <option [ngValue]="0" disabled>Pilih kelas</option>
+              @for (kelas of kelasList(); track kelas.id) {
+                <option [ngValue]="kelas.id">{{ kelasLabel(kelas) }}</option>
+              }
+            </select>
+          </app-form-field>
+        }
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <app-form-field label="Jatuh Tempo" fieldId="massal-jatuh-tempo" [required]="true" [error]="errorText(jatuhTempo)">
+            <input id="massal-jatuh-tempo" type="date" formControlName="jatuhTempo"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900"
+              [attr.aria-invalid]="jatuhTempo.invalid && (jatuhTempo.touched || jatuhTempo.dirty)" />
+          </app-form-field>
+
+          <app-form-field
+            label="Keterangan"
+            fieldId="massal-keterangan"
+            [error]="errorText(keterangan)"
+            hint="Opsional. Contoh: SPP bulan September."
+          >
+            <input id="massal-keterangan" type="text" formControlName="keterangan"
+              class="h-11 w-full rounded-control border border-line-300 bg-surface px-3 text-sm text-ink-900 focus:border-navy-900" />
+          </app-form-field>
+        </div>
+      </form>
+
+      <div class="mt-6 flex flex-col-reverse gap-2 border-t border-line-200 pt-4 sm:flex-row sm:justify-end">
+        <a routerLink="/admin/tagihan"
+          class="inline-flex h-11 items-center justify-center rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50">
+          Batal
+        </a>
+        <button type="button" (click)="submitPreview()" [disabled]="previewing()"
+          class="inline-flex h-11 items-center justify-center gap-2 rounded-control bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-800 disabled:cursor-not-allowed disabled:opacity-60">
+          <app-icon name="Search" [size]="16" />
+          {{ previewing() ? 'Menghitung...' : 'Lihat Preview' }}
+        </button>
+      </div>
+    </section>
+  } @else if (step() === 'preview') {
+    @if (preview(); as p) {
+      <section class="mt-4 rounded-card border border-line-200 bg-surface p-5 sm:p-6">
+        <h2 class="text-lg font-semibold text-ink-900">Ringkasan Preview</h2>
+        <p class="mt-1 text-sm text-ink-600">
+          Periksa target berikut sebelum membuat tagihan. Angka dihitung dari data saat ini.
+        </p>
+
+        <dl class="mt-5 divide-y divide-line-200 text-sm">
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Periode</dt>
+            <dd class="text-right font-medium text-ink-900">{{ periodLabel(p.periode.bulan, p.periode.tahun) }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Tahun ajaran</dt>
+            <dd class="text-right font-medium text-ink-900">{{ p.tahunAjaran.nama }} - {{ p.tahunAjaran.semester === 'GANJIL' ? 'Ganjil' : 'Genap' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Target</dt>
+            <dd class="text-right font-medium text-ink-900">{{ targetLabel(p.target) }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Nominal per tagihan</dt>
+            <dd class="text-right font-medium tabular-money text-ink-900">{{ formatRupiah(p.nominal) }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Jumlah siswa target</dt>
+            <dd class="text-right font-medium tabular-money text-ink-900">{{ p.totalTarget }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Tagihan baru akan dibuat</dt>
+            <dd class="text-right font-semibold tabular-money text-green-700">{{ p.willCreate }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Dilewati (sudah ada)</dt>
+            <dd class="text-right font-medium tabular-money text-amber-700">{{ p.skipped }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4 py-3">
+            <dt class="text-ink-600">Total nominal tagihan baru</dt>
+            <dd class="text-right text-base font-bold tabular-money text-ink-900">{{ formatRupiah(p.totalNominal) }}</dd>
+          </div>
+        </dl>
+
+        @if (p.willCreate === 0) {
+          <div class="mt-4">
+            <app-inline-alert
+              tone="info"
+              message="Semua siswa pada target ini sudah memiliki tagihan untuk periode tersebut. Tidak ada tagihan baru yang akan dibuat."
+            />
+          </div>
+        }
+
+        <div class="mt-6 flex flex-col-reverse gap-2 border-t border-line-200 pt-4 sm:flex-row sm:justify-end">
+          <button type="button" (click)="backToConfig()"
+            class="inline-flex h-11 items-center justify-center rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50">
+            Kembali
+          </button>
+          <button type="button" (click)="requestGenerate()" [disabled]="p.willCreate === 0 || generating()"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-control bg-green-700 px-4 text-sm font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60">
+            <app-icon name="CircleCheck" [size]="16" />
+            Generate Sekarang
+          </button>
+        </div>
+      </section>
+    }
+  } @else if (step() === 'result') {
+    @if (result(); as r) {
+      <section class="mt-4 rounded-card border border-line-200 bg-surface p-5 sm:p-6">
+        <div class="flex items-start gap-3">
+          <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700">
+            <app-icon name="CircleCheck" [size]="18" />
+          </span>
+          <div>
+            <h2 class="text-lg font-semibold text-ink-900">Hasil Generate Tagihan</h2>
+            <p class="mt-1 text-sm text-ink-600">
+              Periode {{ periodLabel(r.periode.bulan, r.periode.tahun) }} ·
+              {{ targetLabel(r.target) }}.
+            </p>
+          </div>
+        </div>
+
+        <dl class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div class="rounded-control border border-line-200 px-4 py-3">
+            <dt class="text-[13px] font-medium text-ink-600">Tagihan dibuat</dt>
+            <dd class="mt-1 text-2xl font-bold tabular-money text-green-700">{{ r.created }}</dd>
+          </div>
+          <div class="rounded-control border border-line-200 px-4 py-3">
+            <dt class="text-[13px] font-medium text-ink-600">Dilewati (sudah ada)</dt>
+            <dd class="mt-1 text-2xl font-bold tabular-money text-amber-700">{{ r.skipped }}</dd>
+          </div>
+          <div class="rounded-control border border-line-200 px-4 py-3">
+            <dt class="text-[13px] font-medium text-ink-600">Gagal</dt>
+            <dd class="mt-1 text-2xl font-bold tabular-money text-ink-900">{{ r.failed }}</dd>
+          </div>
+        </dl>
+
+        <div class="mt-4 flex items-center justify-between rounded-control bg-canvas px-4 py-3 text-sm">
+          <span class="text-ink-600">Total nominal tagihan baru</span>
+          <span class="text-base font-bold tabular-money text-ink-900">{{ formatRupiah(r.totalNominal) }}</span>
+        </div>
+
+        <div class="mt-6 flex flex-col-reverse gap-2 border-t border-line-200 pt-4 sm:flex-row sm:justify-end">
+          <button type="button" (click)="restart()"
+            class="inline-flex h-11 items-center justify-center rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50">
+            Generate Lagi
+          </button>
+          <a routerLink="/admin/tagihan"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-control bg-navy-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-navy-800">
+            <app-icon name="ReceiptText" [size]="16" />
+            Kembali ke Daftar Tagihan
+          </a>
+        </div>
+      </section>
+    }
+  }
+}
+
+<app-confirm-dialog
+  [open]="confirmOpen()"
+  title="Konfirmasi Generate Tagihan"
+  [message]="confirmMessage()"
+  confirmLabel="Generate Sekarang"
+  tone="default"
+  [busy]="generating()"
+  (confirmed)="generate()"
+  (closed)="cancelGenerate()"
+/>

@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { apiErrorMessage } from '../../core/http/http-error.util';
+import { ReceiptService } from '../../core/receipt/receipt.service';
 import { Transaksi } from '../../core/transaksi/transaksi.model';
 import { TransaksiService } from '../../core/transaksi/transaksi.service';
 import { formatDateTime, formatRupiahFrom } from '../../shared/util/format';
@@ -34,6 +35,7 @@ import { TableSkeleton } from '../../shared/ui/table-skeleton/table-skeleton';
 })
 export class StudentRiwayatPage {
   private readonly transaksiService = inject(TransaksiService);
+  private readonly receiptService = inject(ReceiptService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly listState = signal<Transaksi[]>([]);
@@ -49,6 +51,14 @@ export class StudentRiwayatPage {
   readonly detailError = signal<string | null>(null);
   readonly detail = signal<Transaksi | null>(null);
   readonly detailRow = signal<Transaksi | null>(null);
+
+  private readonly downloadingState = signal<number | null>(null);
+  private readonly receiptNoticeState = signal<
+    { tone: 'success' | 'error'; message: string } | null
+  >(null);
+
+  readonly downloading = this.downloadingState.asReadonly();
+  readonly receiptNotice = this.receiptNoticeState.asReadonly();
 
   protected readonly formatRupiah = formatRupiahFrom;
   protected readonly formatDateTime = formatDateTime;
@@ -105,6 +115,51 @@ export class StudentRiwayatPage {
 
   closeDetail(): void {
     this.detailOpen.set(false);
+  }
+
+  canDownload(item: Transaksi): boolean {
+    return item.transaction_status === 'SETTLEMENT';
+  }
+
+  downloadReceipt(item: Transaksi): void {
+    if (this.downloadingState() !== null) {
+      return;
+    }
+
+    this.receiptNoticeState.set(null);
+    this.downloadingState.set(item.id);
+
+    this.receiptService
+      .generate(item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((outcome) => {
+        this.downloadingState.set(null);
+
+        if (outcome.status === 'ok') {
+          this.receiptService.download({
+            blob: outcome.blob,
+            fileName: outcome.fileName,
+          });
+          this.receiptNoticeState.set({
+            tone: 'success',
+            message: 'Struk PDF berhasil dibuat dan diunduh.',
+          });
+        } else if (outcome.status === 'ineligible') {
+          this.receiptNoticeState.set({
+            tone: 'error',
+            message: outcome.reason,
+          });
+        } else {
+          this.receiptNoticeState.set({
+            tone: 'error',
+            message: outcome.message,
+          });
+        }
+      });
+  }
+
+  dismissReceiptNotice(): void {
+    this.receiptNoticeState.set(null);
   }
 
   private fetchDetail(id: number): void {

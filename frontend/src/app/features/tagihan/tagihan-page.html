@@ -2,6 +2,13 @@
   title="Tagihan"
   description="Kelola tagihan SPP per siswa, lengkap dengan status pembayaran dan jatuh tempo."
 >
+  <a
+    routerLink="/admin/tagihan/massal"
+    class="inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-300 bg-surface px-4 text-sm font-medium text-ink-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-900"
+  >
+    <app-icon name="Users" [size]="16" />
+    Generate Tagihan Massal
+  </a>
   <button
     type="button"
     (click)="openCreate()"

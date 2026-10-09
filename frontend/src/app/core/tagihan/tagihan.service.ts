@@ -1,9 +1,16 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { ApiResponse } from '../models/api-response.model';
-import { Tagihan, TagihanPayload } from './tagihan.model';
+import {
+  BulkGenerateRequest,
+  BulkGenerateResult,
+  BulkPreviewRequest,
+  BulkPreviewResult,
+  Tagihan,
+  TagihanPayload,
+} from './tagihan.model';
 
 @Injectable({ providedIn: 'root' })
 export class TagihanService {
@@ -37,6 +44,34 @@ export class TagihanService {
   remove(id: number): Observable<null> {
     return this.http
       .delete<ApiResponse<null>>(`${this.apiBaseUrl}/tagihan/${id}`)
+      .pipe(map((response) => response.data));
+  }
+
+  bulkPreview(input: BulkPreviewRequest): Observable<BulkPreviewResult> {
+    let params = new HttpParams()
+      .set('tahunAjaranId', input.tahunAjaranId)
+      .set('bulan', input.bulan)
+      .set('tahun', input.tahun)
+      .set('nominal', input.nominal);
+
+    if (input.kelasId != null) {
+      params = params.set('kelasId', input.kelasId);
+    }
+
+    return this.http
+      .get<ApiResponse<BulkPreviewResult>>(
+        `${this.apiBaseUrl}/tagihan/bulk-preview`,
+        { params },
+      )
+      .pipe(map((response) => response.data));
+  }
+
+  bulkGenerate(payload: BulkGenerateRequest): Observable<BulkGenerateResult> {
+    return this.http
+      .post<ApiResponse<BulkGenerateResult>>(
+        `${this.apiBaseUrl}/tagihan/bulk-generate`,
+        payload,
+      )
       .pipe(map((response) => response.data));
   }
 }

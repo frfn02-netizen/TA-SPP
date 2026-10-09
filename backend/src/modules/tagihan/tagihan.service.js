@@ -205,10 +205,223 @@ const remove = async (id) => {
 
 };
 
+const toRupiah = (nominal, count) => {
+    const cents = Math.round(Number(nominal) * 100);
+    return (cents * count) / 100;
+};
+
+const bulkPreview = async (data) => {
+
+    const {
+        tahunAjaranId,
+        bulan,
+        tahun,
+        nominal,
+        kelasId,
+    } = data;
+
+    const tahunAjaran =
+        await tagihanQuery.getTahunAjaranById(
+            tahunAjaranId
+        );
+
+    if (!tahunAjaran) {
+        throw new AppError(
+            "Tahun ajaran tidak ditemukan",
+            404
+        );
+    }
+
+    if (
+        kelasId &&
+        !(await tagihanQuery.kelasExists(kelasId))
+    ) {
+        throw new AppError(
+            "Kelas tidak ditemukan",
+            404
+        );
+    }
+
+    const targets =
+        await tagihanQuery.getTargetSiswa(
+            kelasId ?? null
+        );
+
+    const existingIds = new Set(
+        (
+            await tagihanQuery.getSiswaIdsByPeriod(
+                tahunAjaranId,
+                bulan,
+                tahun
+            )
+        ).map(Number)
+    );
+
+    const willCreate = targets.filter(
+        (target) => !existingIds.has(Number(target.id))
+    ).length;
+
+    const skipped = targets.length - willCreate;
+
+    return {
+        periode: { bulan, tahun },
+        tahunAjaran: {
+            id: tahunAjaran.id,
+            nama: tahunAjaran.nama,
+            semester: tahunAjaran.semester,
+        },
+        target: {
+            scope: kelasId ? "KELAS" : "ALL",
+            kelasId: kelasId ?? null,
+        },
+        nominal: Number(nominal),
+        totalTarget: targets.length,
+        willCreate,
+        skipped,
+        totalNominal: toRupiah(nominal, willCreate),
+    };
+
+};
+
+const bulkGenerate = async (data) => {
+
+    const {
+        tahunAjaranId,
+        bulan,
+        tahun,
+        nominal,
+        jatuhTempo,
+        keterangan,
+        kelasId,
+    } = data;
+
+    const tahunAjaran =
+        await tagihanQuery.getTahunAjaranById(
+            tahunAjaranId
+        );
+
+    if (!tahunAjaran) {
+        throw new AppError(
+            "Tahun ajaran tidak ditemukan",
+            404
+        );
+    }
+
+    if (
+        kelasId &&
+        !(await tagihanQuery.kelasExists(kelasId))
+    ) {
+        throw new AppError(
+            "Kelas tidak ditemukan",
+            404
+        );
+    }
+
+    // Hitung ulang target dan duplikasi dari database
+    // pada saat generate, bukan mengandalkan preview.
+    const targets =
+        await tagihanQuery.getTargetSiswa(
+            kelasId ?? null
+        );
+
+    const existingIds = new Set(
+        (
+            await tagihanQuery.getSiswaIdsByPeriod(
+                tahunAjaranId,
+                bulan,
+                tahun
+            )
+        ).map(Number)
+    );
+
+    const newTargets = targets.filter(
+        (target) => !existingIds.has(Number(target.id))
+    );
+
+    const preSkipped =
+        targets.length - newTargets.length;
+
+    const conn = await db.getConnection();
+
+    let created = 0;
+    let raceSkipped = 0;
+
+    try {
+
+        await conn.beginTransaction();
+
+        for (const target of newTargets) {
+
+            try {
+
+                await tagihanQuery.create(
+                    conn,
+                    {
+                        siswaId: target.id,
+                        tahunAjaranId,
+                        bulan,
+                        tahun,
+                        nominal,
+                        jatuhTempo,
+                        keterangan,
+                    }
+                );
+
+                created += 1;
+
+            } catch (err) {
+
+                // Duplikasi dari request bersamaan:
+                // lewati baris ini, jangan gagalkan seluruh batch.
+                if (err && err.code === "ER_DUP_ENTRY") {
+                    raceSkipped += 1;
+                    continue;
+                }
+
+                throw err;
+            }
+        }
+
+        await conn.commit();
+
+    } catch (err) {
+
+        await conn.rollback();
+        throw err;
+
+    } finally {
+
+        conn.release();
+
+    }
+
+    return {
+        periode: { bulan, tahun },
+        tahunAjaran: {
+            id: tahunAjaran.id,
+            nama: tahunAjaran.nama,
+            semester: tahunAjaran.semester,
+        },
+        target: {
+            scope: kelasId ? "KELAS" : "ALL",
+            kelasId: kelasId ?? null,
+        },
+        nominal: Number(nominal),
+        totalTarget: targets.length,
+        created,
+        skipped: preSkipped + raceSkipped,
+        failed: 0,
+        totalNominal: toRupiah(nominal, created),
+    };
+
+};
+
 module.exports = {
     getAll,
     getById,
     create,
     update,
     remove,
+    bulkPreview,
+    bulkGenerate,
 };

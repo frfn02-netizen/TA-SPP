@@ -59,6 +59,14 @@ export const routes: Routes = [
           import('./features/tagihan/tagihan-page').then((m) => m.TagihanPage),
       },
       {
+        path: 'tagihan/massal',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/tagihan/tagihan-massal-page').then(
+            (m) => m.TagihanMassalPage,
+          ),
+      },
+      {
         path: 'transaksi',
         canActivate: [adminGuard],
         loadComponent: () =>
